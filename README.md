@@ -17,6 +17,10 @@ Web estática preparada para GitHub Pages.
    `python3 -c "from PIL import Image; Image.open('assets/photos/foto.jpg').save('assets/photos/foto.webp', quality=78, method=6)"`
 3. En el HTML usa el mismo bloque `<picture>` que las demás (con `width`, `height` y `loading="lazy"`), salvo la portada, que lleva `fetchpriority="high"` y sin lazy.
 
+## Fuentes
+
+Anton e Inter se sirven desde `assets/fonts/` (subconjunto latino, licencia SIL Open Font License) en lugar de Google Fonts: una petición menos a terceros que bloqueaba el renderizado y no se envían las IPs de los visitantes a Google. Se precargan en el `<head>` de cada página.
+
 ## Rendimiento y animaciones
 
 - Las animaciones solo usan `transform`/`opacity` y un único `requestAnimationFrame`, así el scroll en móvil va fluido.
