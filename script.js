@@ -78,34 +78,35 @@
   document.querySelectorAll('.reveal').forEach(collect);
 
   if (!reduceMotion && 'IntersectionObserver' in window && items.length) {
-    const vh = window.innerHeight;
-    const pending = [];
-    // Lectura en bloque: lo que ya está en pantalla al cargar se queda tal cual (sin parpadeo)
-    const rects = items.map((el) => el.getBoundingClientRect());
-    items.forEach((el, i) => {
-      el.classList.add('rv');
-      if (el.matches(IMG_ITEMS)) el.classList.add('rv-img');
-      if (rects[i].top < vh) el.classList.add('in', 'rv-instant');
-      else pending.push(el);
-    });
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      document.querySelectorAll('.rv-instant').forEach((el) => el.classList.remove('rv-instant'));
-    }));
-
+    // Sin getBoundingClientRect al arrancar (forzaba un reflow): la primera notificación del
+    // observer dice qué está ya en pantalla. Eso se queda tal cual (sin parpadeo) y solo
+    // se ocultan, para animarlos luego, los elementos que están por debajo.
+    const seen = new WeakSet();
     const io = new IntersectionObserver((entries) => {
-      const show = entries
-        .filter((e) => e.isIntersecting || e.boundingClientRect.bottom < 0)
-        .sort((a, b) => (a.boundingClientRect.top - b.boundingClientRect.top) || (a.boundingClientRect.left - b.boundingClientRect.left));
+      const show = [];
+      entries.forEach((e) => {
+        const el = e.target;
+        const passed = e.boundingClientRect.bottom < 0;
+        if (!seen.has(el)) {
+          seen.add(el);
+          if (e.isIntersecting || passed) { io.unobserve(el); return; }
+          el.classList.add('rv');
+          if (el.matches(IMG_ITEMS)) el.classList.add('rv-img');
+          return;
+        }
+        if (e.isIntersecting || passed) show.push(e);
+      });
+      show.sort((a, b) => (a.boundingClientRect.top - b.boundingClientRect.top) || (a.boundingClientRect.left - b.boundingClientRect.left));
       let n = 0;
       show.forEach((e) => {
         const el = e.target;
         if (e.isIntersecting) el.style.setProperty('--rv-delay', `${Math.min(n++, 6) * 70}ms`);
-        else el.classList.add('rv-instant'); // ya pasado (p. ej. al volver atrás): sin animación
+        else el.classList.add('rv-instant'); // ya pasado (p. ej. salto con el ancla): sin animación
         el.classList.add('in');
         io.unobserve(el);
       });
-    }, { rootMargin: '0px 0px -4% 0px', threshold: 0 });
-    pending.forEach((el) => io.observe(el));
+    }, { threshold: 0 });
+    items.forEach((el) => io.observe(el));
   }
 
   /* ---------- Efectos ligados al scroll ---------- */
