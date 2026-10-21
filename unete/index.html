@@ -3,6 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MEZVFLMRC8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-MEZVFLMRC8');
+</script>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-WRXQTW3Q');</script>
+<!-- End Google Tag Manager -->
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
 <link rel="icon" href="../favicon.ico">
@@ -17,22 +32,27 @@
 <meta property="og:site_name" content="Dub Edition VLC">
 <meta property="og:title" content="Únete a Dub Edition VLC | Club automovilístico Valencia">
 <meta property="og:description" content="Únete a Dub Edition VLC, club automovilístico en Valencia. Solicitud para formar parte del club o colaborar como empresa del sector motor.">
+<meta property="og:image:width" content="1920">
+<meta property="og:image:height" content="1080">
 <meta property="og:url" content="https://dubedition.es/unete/">
-<meta property="og:image" content="https://dubedition.es/assets/photos/home-hero.jpg">
+<meta property="og:image" content="https://dubedition.es/assets/photos/unete-hero.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Únete a Dub Edition VLC | Club automovilístico Valencia">
 <meta name="twitter:description" content="Únete a Dub Edition VLC, club automovilístico en Valencia. Solicitud para formar parte del club o colaborar como empresa del sector motor.">
-<meta name="twitter:image" content="https://dubedition.es/assets/photos/home-hero.jpg">
+<meta name="twitter:image" content="https://dubedition.es/assets/photos/unete-hero.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../style.css">
 <script defer src="../script.js"></script>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WRXQTW3Q" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 <header class="site-header">
   <a href="../" class="brand brand-logo" aria-label="Dub Edition inicio">
-    <img src="../assets/dub-edition-logo-white.png" alt="Logo Dub Edition VLC">
+    <img src="../assets/dub-edition-logo-white-sm.png" alt="Logo Dub Edition VLC" width="640" height="114">
     <span class="sr-only">Dub Edition</span>
   </a>
   <button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
@@ -42,10 +62,13 @@
 </header>
 
 <main>
-<section class="page-hero unete-bg reveal">
-  <p class="eyebrow">Únete a Dub Edition</p>
-  <h1>Dos formas de entrar en el movimiento.</h1>
-  <p>Colaboraciones para empresas, visibilidad para marcas y solicitud para formar parte del club.</p>
+<section class="page-hero unete-bg">
+  <picture class="hero-media" aria-hidden="true"><source srcset="../assets/photos/unete-hero.webp" type="image/webp"><img src="../assets/photos/unete-hero.jpg" alt="" width="1920" height="1080" fetchpriority="high"></picture>
+  <div class="hero-content">
+    <p class="eyebrow">Únete a Dub Edition</p>
+    <h1>Dos formas de entrar en el movimiento.</h1>
+    <p>Colaboraciones para empresas, visibilidad para marcas y solicitud para formar parte del club.</p>
+  </div>
 </section>
 <section class="section partners-section reveal">
   <p class="eyebrow center">Marcas que ya colaboran con nosotros</p>
@@ -79,12 +102,9 @@
   </div>
 </section>
 <section class="section tabs reveal">
-  <div class="tab-buttons" role="tablist">
+  <div class="tab-buttons">
     <button class="tab-btn active" data-tab="empresa" type="button">Empresa / colaboración</button>
     <button class="tab-btn" data-tab="club" type="button">Formar parte del club</button>
-  </div>
-  <div class="form-note">
-    <strong>Importante:</strong> GitHub Pages no guarda formularios por sí solo. Esta web deja los formularios preparados. Para recibirlos de verdad, conecta Formspree, Netlify Forms o Google Forms siguiendo el README.
   </div>
   <section id="empresa" class="tab-panel active">
     <form class="form-card" action="https://formspree.io/f/mpqnbwyz" method="POST">

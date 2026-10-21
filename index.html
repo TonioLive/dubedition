@@ -1,24 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
-  <!-- Google tag (gtag.js) -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-MEZVFLMRC8"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-MEZVFLMRC8');
 </script>
-  <!-- Google Tag Manager -->
+<!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-WRXQTW3Q');</script>
 <!-- End Google Tag Manager -->
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
 <link rel="icon" href="favicon.ico">
@@ -33,6 +32,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta property="og:site_name" content="Dub Edition VLC">
 <meta property="og:title" content="Dub Edition VLC | Club de coches y KDDs en Valencia">
 <meta property="og:description" content="Dub Edition VLC es un club automovilístico en Valencia para amantes de los coches modificados, KDDs nocturnas, rutas, eventos de coches y cultura tuning.">
+<meta property="og:image:width" content="1920">
+<meta property="og:image:height" content="1080">
 <meta property="og:url" content="https://dubedition.es/">
 <meta property="og:image" content="https://dubedition.es/assets/photos/home-hero.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -41,7 +42,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta name="twitter:image" content="https://dubedition.es/assets/photos/home-hero.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script defer src="script.js"></script>
 <script type="application/ld+json">
@@ -70,9 +71,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </script>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WRXQTW3Q" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 <header class="site-header">
   <a href="./" class="brand brand-logo" aria-label="Dub Edition inicio">
-    <img src="assets/dub-edition-logo-white.png" alt="Logo Dub Edition VLC">
+    <img src="assets/dub-edition-logo-white-sm.png" alt="Logo Dub Edition VLC" width="640" height="114">
     <span class="sr-only">Dub Edition</span>
   </a>
   <button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
@@ -83,8 +87,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 <main>
 <section class="hero hero-home">
+  <picture class="hero-media" aria-hidden="true"><source srcset="assets/photos/home-hero.webp" type="image/webp"><img src="assets/photos/home-hero.jpg" alt="" width="1920" height="1080" fetchpriority="high"></picture>
   <div class="noise"></div>
-  <div class="hero-content reveal">    <p class="eyebrow">Club automovilístico · Valencia</p>
+  <div class="hero-content">
+    <p class="eyebrow">Club automovilístico · Valencia</p>
     <h1>DUB EDITION</h1>
     <p class="hero-subtitle">Una comunidad creada para los que viven el motor con estilo, respeto y ganas de hacer algo diferente.</p>
     <div class="hero-actions">
@@ -94,6 +100,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   </div>
   <div class="scroll-indicator">scroll</div>
 </section>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>KDDs nocturnas</span><span>Rutas</span><span>Eventos</span><span>Comunidad</span><span>#seguimosenlonuestro</span>
+    <span>KDDs nocturnas</span><span>Rutas</span><span>Eventos</span><span>Comunidad</span><span>#seguimosenlonuestro</span>
+  </div>
+</div>
 
 <section class="section split reveal">
   <div>
@@ -145,9 +158,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <a class="btn btn-primary" href="kdds/">VER KDDs</a>
   </div>
   <div class="kdd-photo-stack" aria-label="Fotos decorativas de KDDs">
-    <div class="photo-card photo-card-a"><span>KDD NIGHT</span></div>
-    <div class="photo-card photo-card-b"><span>FRIDAY MEET</span></div>
-    <div class="photo-card photo-card-c"><span>TUNING CULTURE</span></div>
+    <div class="photo-card photo-card-a" data-parallax="0.15"><picture class="card-media"><source srcset="assets/photos/home-kdd-1.webp" type="image/webp"><img src="assets/photos/home-kdd-1.jpg" alt="Coches modificados con los faros encendidos en una KDD nocturna de Dub Edition" width="1080" height="1440" loading="lazy" decoding="async"></picture><span>KDD NIGHT</span></div>
+    <div class="photo-card photo-card-b" data-parallax="0.35"><picture class="card-media"><source srcset="assets/photos/home-kdd-2.webp" type="image/webp"><img src="assets/photos/home-kdd-2.jpg" alt="Coches aparcados de noche en una quedada de Dub Edition en Valencia" width="1080" height="1440" loading="lazy" decoding="async"></picture><span>FRIDAY MEET</span></div>
+    <div class="photo-card photo-card-c" data-parallax="0.55"><picture class="card-media"><source srcset="assets/photos/home-kdd-3.webp" type="image/webp"><img src="assets/photos/home-kdd-3.jpg" alt="Detalle de llanta de un coche modificado en una quedada al atardecer" width="1080" height="1439" loading="lazy" decoding="async"></picture><span>TUNING CULTURE</span></div>
   </div>
 </section>
 
@@ -178,8 +191,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <p class="hashtag">#seguimosenlonuestro</p>
     <a class="btn btn-primary" href="https://www.instagram.com/dubeditionvlc" target="_blank" rel="noopener">IR AL INSTAGRAM</a>
   </div>
-  <div class="mock-feed" aria-label="Vista decorativa de Instagram">
-    <div></div><div></div><div></div><div></div><div></div><div></div>
+  <div class="mock-feed" aria-label="Fotos de Dub Edition en Instagram">
+    <a href="https://www.instagram.com/dubeditionvlc" target="_blank" rel="noopener" aria-label="Ver en Instagram: Honda Civic con luces rosas y azules en una sesión nocturna"><picture class="card-media"><source srcset="assets/photos/feed-1.webp" type="image/webp"><img src="assets/photos/feed-1.jpg" alt="Honda Civic con luces rosas y azules en una sesión nocturna" width="1080" height="1350" loading="lazy" decoding="async"></picture></a>
+    <a href="https://www.instagram.com/dubeditionvlc" target="_blank" rel="noopener" aria-label="Ver en Instagram: Volkswagen Escarabajo clásico junto a otros coches en un evento"><picture class="card-media"><source srcset="assets/photos/feed-2.webp" type="image/webp"><img src="assets/photos/feed-2.jpg" alt="Volkswagen Escarabajo clásico junto a otros coches en un evento" width="1080" height="1347" loading="lazy" decoding="async"></picture></a>
+    <a href="https://www.instagram.com/dubeditionvlc" target="_blank" rel="noopener" aria-label="Ver en Instagram: Audi coupé negro rebajado sobre un camino de tierra"><picture class="card-media"><source srcset="assets/photos/feed-3.webp" type="image/webp"><img src="assets/photos/feed-3.jpg" alt="Audi coupé negro rebajado sobre un camino de tierra" width="1080" height="1080" loading="lazy" decoding="async"></picture></a>
+    <a href="https://www.instagram.com/dubeditionvlc" target="_blank" rel="noopener" aria-label="Ver en Instagram: Miembros del club mirando el motor de un Subaru Impreza azul"><picture class="card-media"><source srcset="assets/photos/feed-4.webp" type="image/webp"><img src="assets/photos/feed-4.jpg" alt="Miembros del club mirando el motor de un Subaru Impreza azul" width="1080" height="1080" loading="lazy" decoding="async"></picture></a>
+    <a href="https://www.instagram.com/dubeditionvlc" target="_blank" rel="noopener" aria-label="Ver en Instagram: Renault Mégane RS amarillo en una exposición de coches"><picture class="card-media"><source srcset="assets/photos/feed-5.webp" type="image/webp"><img src="assets/photos/feed-5.jpg" alt="Renault Mégane RS amarillo en una exposición de coches" width="1080" height="1347" loading="lazy" decoding="async"></picture></a>
+    <a href="https://www.instagram.com/dubeditionvlc" target="_blank" rel="noopener" aria-label="Ver en Instagram: Pilotos traseros de coches modificados de noche"><picture class="card-media"><source srcset="assets/photos/feed-6.webp" type="image/webp"><img src="assets/photos/feed-6.jpg" alt="Pilotos traseros de coches modificados de noche" width="1080" height="1440" loading="lazy" decoding="async"></picture></a>
   </div>
 </section>
 
@@ -204,8 +222,4 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   </div>
 </footer>
 </body>
-  <!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WRXQTW3Q"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
 </html>
