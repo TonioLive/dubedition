@@ -130,7 +130,10 @@
       item.estado = el.dataset.act;
       if (prev.estado !== item.estado) item.respuesta = '';
       render();
-      try { await window.dubApi('setStatus', { key, id: item.id, status: item.estado }); }
+      try {
+        await window.dubApi('setStatus', { key, id: item.id, status: item.estado });
+        if (item.estado !== 'Pendiente') notice(`${item.nombre} marcado como ${item.estado}. El correo NO sale hasta que pulses "🚀 Enviar respuestas".`, 'ok');
+      }
       catch (err) { Object.assign(item, prev); render(); notice(err.message, 'error'); }
       return;
     }
