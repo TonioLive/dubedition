@@ -22,7 +22,8 @@ const CFG = {
   LOGO_WHITE: 'https://dubedition.es/assets/dub-edition-logo-white-sm.png',
   INSTAGRAM: 'https://www.instagram.com/dubeditionvlc',
   SENDER_NAME: 'Dub Edition VLC',
-  REPLY_TO: '',              // opcional: email de respuesta (si lo dejas vacío, responde a la cuenta que envía)
+  FROM: 'info@dubedition.es',     // remitente si está añadido en Gmail como alias "Enviar como"; si no, se usa la cuenta propietaria
+  REPLY_TO: 'info@dubedition.es', // las respuestas de los inscritos llegan aquí
   SHEET_NAME: 'Inscripciones',
   FOLDER_NAME: 'DUB EDITION · Expo Aspar 21-11 · Fotos',
   AUTO_THANKS: true,         // envía el correo de "gracias por inscribirte" al recibir el formulario
@@ -77,7 +78,8 @@ function setup() {
     'Carpeta fotos: https://drive.google.com/drive/folders/' + props.getProperty('FOLDER_ID'),
     'CLAVE ADMIN (panel de admisión): ' + props.getProperty('ADMIN_KEY'),
     'CLAVE STAFF (solo check-in en puerta): ' + props.getProperty('STAFF_KEY'),
-    'Correos restantes hoy: ' + MailApp.getRemainingDailyQuota()
+    'Correos restantes hoy: ' + MailApp.getRemainingDailyQuota(),
+    'Remitente: ' + (GmailApp.getAliases().indexOf(CFG.FROM) >= 0 ? CFG.FROM : Session.getActiveUser().getEmail() + ' (alias ' + CFG.FROM + ' no configurado; respuestas a ' + CFG.REPLY_TO + ')')
   ].join('\n');
   Logger.log(msg);
   return msg;
@@ -394,6 +396,7 @@ function sendRejectedMail_(o) {
 function mail_(to, subject, html, extra) {
   const opts = Object.assign({ htmlBody: html, name: CFG.SENDER_NAME }, extra || {});
   if (CFG.REPLY_TO) opts.replyTo = CFG.REPLY_TO;
+  if (CFG.FROM && GmailApp.getAliases().indexOf(CFG.FROM) >= 0) opts.from = CFG.FROM;
   GmailApp.sendEmail(to, subject, stripHtml_(html), opts);
 }
 
