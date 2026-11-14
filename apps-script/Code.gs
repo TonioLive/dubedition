@@ -24,6 +24,7 @@ const CFG = {
   SENDER_NAME: 'Dub Edition VLC',
   FROM: 'info@dubedition.es',     // remitente si está añadido en Gmail como alias "Enviar como"; si no, se usa la cuenta propietaria
   REPLY_TO: 'info@dubedition.es', // las respuestas de los inscritos llegan aquí
+  REQUIRE_FROM: true,             // true = no envía nada si FROM no está configurado (nunca muestra la cuenta propietaria)
   SHEET_ID: '1Q659YDYRJJdrC7A6kpNdG-85cJ5WQKyif9II40DnQA0', // hoja de inscripciones
   SHEET_NAME: 'Inscripciones',
   FOLDER_NAME: 'DUB EDITION · Expo Aspar 21-11 · Fotos',
@@ -259,6 +260,7 @@ function setStatus_(id, status, note) {
 
 function sendThanks_() {
   let sent = 0;
+  checkSender_();
   eachRow_(r => {
     if (r.values[COL['Gracias enviado']]) return;
     sendThanksMail_(rowObj_(r.values));
@@ -268,7 +270,14 @@ function sendThanks_() {
   return { ok: true, sent };
 }
 
+function checkSender_() {
+  if (CFG.REQUIRE_FROM && GmailApp.getAliases().indexOf(CFG.FROM) < 0) {
+    fail_('No se envía nada: falta configurar ' + CFG.FROM + ' en Gmail (Configuración → Cuentas → Enviar como).');
+  }
+}
+
 function sendReplies_() {
+  checkSender_();
   const t0 = Date.now();
   let sent = 0, remaining = 0;
   eachRow_(r => {
@@ -283,6 +292,7 @@ function sendReplies_() {
 }
 
 function resend_(id) {
+  checkSender_();
   const r = findRow_(x => x[COL['ID']] === id) || fail_('Inscripción no encontrada.');
   const o = rowObj_(r.values);
   if (o.estado === STATUS.ACCEPTED) sendAcceptedMail_(o);
@@ -398,6 +408,7 @@ function mail_(to, subject, html, extra) {
   const opts = Object.assign({ htmlBody: html, name: CFG.SENDER_NAME }, extra || {});
   if (CFG.REPLY_TO) opts.replyTo = CFG.REPLY_TO;
   if (CFG.FROM && GmailApp.getAliases().indexOf(CFG.FROM) >= 0) opts.from = CFG.FROM;
+  else if (CFG.REQUIRE_FROM) throw new Error('Correo no enviado: falta configurar ' + CFG.FROM + ' en Gmail (Configuración → Cuentas → Enviar como).');
   GmailApp.sendEmail(to, subject, stripHtml_(html), opts);
 }
 
