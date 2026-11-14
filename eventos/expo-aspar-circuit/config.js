@@ -4,7 +4,7 @@
    (termina en /exec). Ver apps-script/README.md
    ========================================================= */
 window.DUB_EXPO = {
-  apiUrl: '',
+  apiUrl: 'https://script.google.com/macros/s/AKfycbzcwRJWGWAsF1e0ZpiTdEebcCoSte0hthlhgpc9bsRCiVnLNpvfOwhhKQ3bgtll_JnsPA/exec',
   maxPhotos: 5,
   inscripcionesAbiertas: true
 };

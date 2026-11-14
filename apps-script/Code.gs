@@ -24,7 +24,7 @@ const CFG = {
   SENDER_NAME: 'Dub Edition VLC',
   FROM: 'info@dubedition.es',     // remitente si está añadido en Gmail como alias "Enviar como"; si no, se usa la cuenta propietaria
   REPLY_TO: 'info@dubedition.es', // las respuestas de los inscritos llegan aquí
-  SHEET_ID: '',                   // opcional: ID de la hoja si el script no está vinculado a ella
+  SHEET_ID: '1Q659YDYRJJdrC7A6kpNdG-85cJ5WQKyif9II40DnQA0', // hoja de inscripciones
   SHEET_NAME: 'Inscripciones',
   FOLDER_NAME: 'DUB EDITION · Expo Aspar 21-11 · Fotos',
   AUTO_THANKS: true,         // envía el correo de "gracias por inscribirte" al recibir el formulario
