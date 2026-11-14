@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#000000">
+<title>Check-in · Expo Aspar · Dub Edition</title>
+<link rel="icon" href="../../../favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../style.css">
+<link rel="stylesheet" href="../panel.css">
+<script defer src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script defer src="../config.js"></script>
+<script defer src="checkin.js"></script>
+</head>
+<body class="panel">
+<header class="panel-header">
+  <a href="../"><img src="../../../assets/dub-edition-logo-white-sm.png" alt="Dub Edition" width="640" height="114"></a>
+  <span class="panel-title">Expo Aspar · Check-in</span>
+  <div id="headerActions" hidden>
+    <a class="p-btn small" href="../admin/" id="adminLink" hidden>Admisión</a>
+    <button class="p-btn small" id="logout" type="button">Salir</button>
+  </div>
+</header>
+
+<main class="panel-main">
+  <form id="login" class="form-card panel-login">
+    <h1>Check-in expo</h1>
+    <p>Introduce la clave de staff para escanear las acreditaciones en la entrada.</p>
+    <label>Clave<input id="key" type="password" autocomplete="current-password" required></label>
+    <button class="btn btn-primary" type="submit">ENTRAR</button>
+    <p id="loginMsg" class="form-status is-error"></p>
+  </form>
+
+  <section id="app" hidden>
+    <div class="ci-grid">
+      <div class="ci-box">
+        <div class="ci-counter"><b id="present">0</b><span>/ <span id="total">0</span> expositores dentro</span></div>
+        <div id="reader"></div>
+        <div class="toolbar" style="margin-top:12px">
+          <button class="p-btn white" id="startCam" type="button">📷 Activar cámara</button>
+          <button class="p-btn" id="stopCam" type="button" hidden>Detener</button>
+        </div>
+        <p class="meta">Apunta al QR del salpicadero. Si no lee, busca por matrícula o nombre en la lista.</p>
+      </div>
+
+      <div class="ci-box">
+        <div class="toolbar">
+          <input class="grow" id="search" type="search" placeholder="Buscar matrícula, nombre o marca…">
+          <button class="p-btn" id="refresh" type="button">↻</button>
+        </div>
+        <div class="chips" id="filters">
+          <button class="chip active" data-f="all" type="button">Todos</button>
+          <button class="chip" data-f="out" type="button">Faltan</button>
+          <button class="chip" data-f="in" type="button">Dentro</button>
+        </div>
+        <div id="notice" class="notice" role="status" style="margin-top:12px"></div>
+        <div id="list" class="ci-list"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="result" class="ci-result" hidden>
+  <div class="ci-card" id="resultCard"></div>
+</div>
+</body>
+</html>

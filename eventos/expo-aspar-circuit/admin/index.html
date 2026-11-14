@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#000000">
+<title>Admisión · Expo Aspar · Dub Edition</title>
+<link rel="icon" href="../../../favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../style.css">
+<link rel="stylesheet" href="../panel.css">
+<script defer src="../config.js"></script>
+<script defer src="admin.js"></script>
+</head>
+<body class="panel">
+<header class="panel-header">
+  <a href="../"><img src="../../../assets/dub-edition-logo-white-sm.png" alt="Dub Edition" width="640" height="114"></a>
+  <span class="panel-title">Expo Aspar · Admisión</span>
+  <div id="headerActions" hidden>
+    <a class="p-btn small" href="../checkin/">Check-in</a>
+    <button class="p-btn small" id="logout" type="button">Salir</button>
+  </div>
+</header>
+
+<main class="panel-main">
+  <form id="login" class="form-card panel-login">
+    <h1>Panel de admisión</h1>
+    <p>Introduce la clave de administrador para ver y gestionar las inscripciones.</p>
+    <label>Clave<input id="key" type="password" autocomplete="current-password" required></label>
+    <button class="btn btn-primary" type="submit">ENTRAR</button>
+    <p id="loginMsg" class="form-status is-error"></p>
+  </form>
+
+  <section id="app" hidden>
+    <div class="stats-row">
+      <div class="stat"><b data-s="total">0</b><span>Inscritos</span></div>
+      <div class="stat"><b data-s="pend">0</b><span>Pendientes</span></div>
+      <div class="stat"><b data-s="acc">0</b><span>Aceptados</span></div>
+      <div class="stat"><b data-s="rej">0</b><span>Rechazados</span></div>
+      <div class="stat"><b data-s="tandas">0</b><span>Quieren tandas</span></div>
+      <div class="stat"><b data-s="in">0</b><span>Check-in</span></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="chips" id="filters">
+        <button class="chip active" data-f="all" type="button">Todos</button>
+        <button class="chip" data-f="Pendiente" type="button">Pendientes</button>
+        <button class="chip" data-f="Aceptado" type="button">Aceptados</button>
+        <button class="chip" data-f="Rechazado" type="button">Rechazados</button>
+      </div>
+      <input class="grow" id="search" type="search" placeholder="Buscar nombre, marca, matrícula, Instagram…">
+      <button class="p-btn" id="refresh" type="button">↻ Actualizar</button>
+    </div>
+
+    <div class="toolbar">
+      <button class="p-btn" id="sendThanks" type="button">✉️ Enviar agradecimientos (<span>0</span>)</button>
+      <button class="p-btn white" id="sendReplies" type="button">🚀 Enviar respuestas (<span>0</span>)</button>
+      <a class="p-btn" id="sheetLink" target="_blank" rel="noopener">📊 Hoja de cálculo</a>
+      <a class="p-btn" id="folderLink" target="_blank" rel="noopener">📁 Fotos en Drive</a>
+      <span class="meta" id="quota"></span>
+    </div>
+
+    <div id="notice" class="notice" role="status"></div>
+    <div id="cards" class="cards"></div>
+  </section>
+</main>
+
+<div id="lightbox" class="lightbox" hidden><img alt=""></div>
+</body>
+</html>

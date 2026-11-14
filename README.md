@@ -57,6 +57,13 @@ Para el formulario del club con fotos, revisa que el servicio elegido permita su
 
 Puedes sustituir los formularios por botones que abran dos Google Forms diferentes.
 
+## Expo Aspar Circuit (21/11/2026)
+
+- `eventos/expo-aspar-circuit/`: página del evento con formulario de inscripción (fotos incluidas).
+- `eventos/expo-aspar-circuit/admin/`: panel privado para aceptar/rechazar y enviar correos.
+- `eventos/expo-aspar-circuit/checkin/`: escáner QR para la entrada.
+- Backend en Google Apps Script: ver `apps-script/README.md`. La URL de la API va en `eventos/expo-aspar-circuit/config.js`.
+
 ## Enlaces incluidos
 
 - Instagram: https://www.instagram.com/dubeditionvlc

@@ -52,7 +52,7 @@
       }
     });
   }
-  document.querySelectorAll('form').forEach((form) => {
+  document.querySelectorAll('form:not([data-ajax])').forEach((form) => {
     form.addEventListener('submit', (event) => {
       if (!form.getAttribute('action')) {
         event.preventDefault();
