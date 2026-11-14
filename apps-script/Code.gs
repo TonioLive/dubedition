@@ -19,7 +19,7 @@ const CFG = {
   EVENT_URL: 'https://dubedition.es/eventos/expo-aspar-circuit/',
   CHECKIN_URL: 'https://dubedition.es/eventos/expo-aspar-circuit/checkin/?t=',
   LOGO_BLACK: 'https://dubedition.es/assets/dub-edition-logo-black-sm.png',
-  LOGO_WHITE: 'https://dubedition.es/assets/dub-edition-logo-white-sm.png',
+  LOGO_MAIL: 'https://dubedition.es/assets/dub-edition-logo-mail.png',   // logo con fondo blanco sólido (aguanta el modo oscuro)
   INSTAGRAM: 'https://www.instagram.com/dubeditionvlc',
   SENDER_NAME: 'Dub Edition VLC',
   FROM: 'info@dubedition.es',     // remitente si está añadido en Gmail como alias "Enviar como"; si no, se usa la cuenta propietaria
@@ -367,27 +367,27 @@ function sendAcceptedMail_(o) {
   const pdf = buildPdf_(o);
   const qr = qrBlob_(o.token).setName('qr.png');
   const html = mailLayout_(
-    '¡Tu coche está dentro! 🏁',
+    '¡Tu coche está dentro!',
     `<p>Hola ${esc_(o.nombre)},</p>
      <p>Enhorabuena: tu <b>${esc_(o.marca)} ${esc_(o.modelo)}</b> (${esc_(o.matricula)}) ha sido <b>seleccionado</b>
      para exponer en la <b>${CFG.EVENT_NAME}</b>.</p>
-     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0;width:100%;background:#111;border:1px solid #2a2a2a;border-radius:16px">
-       <tr><td style="padding:18px 20px;color:#ddd;font-size:15px;line-height:1.7">
-         📅 <b style="color:#fff">${CFG.EVENT_DATE}</b><br>
-         📍 <b style="color:#fff">${CFG.EVENT_PLACE}</b><br>
-         🎟️ Acceso: <b style="color:#fff">${esc_(o.id)}</b>
+     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0;width:100%;background:#f6f6f6;border:1px solid #e6e6e6;border-radius:14px">
+       <tr><td style="padding:16px 20px;color:#333333;font-size:15px;line-height:1.8">
+         <span style="color:#888888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Fecha</span><br><b style="color:#111111">${CFG.EVENT_DATE}</b><br>
+         <span style="color:#888888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Lugar</span><br><b style="color:#111111">${CFG.EVENT_PLACE}</b><br>
+         <span style="color:#888888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Acceso</span><br><b style="color:#111111">${esc_(o.id)} &middot; ${esc_(o.matricula)}</b>
        </td></tr>
      </table>
      <p><b>IMPORTANTE:</b> te adjuntamos un PDF con tu acreditación. <b>Imprímelo y colócalo en el salpicadero</b>
      (lado del copiloto). En la entrada escanearemos el código QR para darte acceso a la zona de exposición.</p>
      <p style="text-align:center;margin:24px 0"><img src="cid:qr" width="200" height="200" alt="Código QR de acceso"
-       style="background:#fff;padding:10px;border-radius:12px"></p>
+       style="background:#ffffff;padding:10px;border:1px solid #e6e6e6;border-radius:12px"></p>
      <p>Si no puedes imprimirlo, enséñanos el QR desde el móvil. Y si al final no puedes venir, respóndenos a este
      correo para liberar la plaza.</p>
      <p>Ese día también podrás rodar en pista: si te apetece hacer tandas, el circuito estará abierto para todo el que quiera.</p>`,
     { label: 'INFO DEL EVENTO', url: CFG.EVENT_URL }
   );
-  mail_(o.email, '✅ Aceptado · ' + CFG.EVENT_NAME, html, { attachments: [pdf], inlineImages: { qr: qr } });
+  mail_(o.email, 'Aceptado · ' + CFG.EVENT_NAME, html, { attachments: [pdf], inlineImages: { qr: qr } });
 }
 
 function sendRejectedMail_(o) {
@@ -413,18 +413,20 @@ function mail_(to, subject, html, extra) {
 }
 
 function mailLayout_(title, inner, cta) {
-  return `<!DOCTYPE html><html><body style="margin:0;background:#050505;font-family:Arial,Helvetica,sans-serif">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#050505"><tr><td align="center" style="padding:28px 12px">
-   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#0d0d0d;border:1px solid #222;border-radius:24px">
-    <tr><td style="padding:30px 30px 6px;text-align:center">
-      <img src="${CFG.LOGO_WHITE}" alt="Dub Edition VLC" width="220" style="max-width:220px;height:auto">
-      <p style="margin:18px 0 0;color:#9a9a9a;font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:bold">${CFG.EVENT_NAME} · ${CFG.EVENT_DATE_SHORT}</p>
+  // Diseño claro: se ve bien en modo claro y en modo oscuro (sin emojis: se corrompen por SMTP externo)
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light"></head>
+  <body style="margin:0;padding:0;background:#f2f2f2;font-family:Arial,Helvetica,sans-serif">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f2f2"><tr><td align="center" style="padding:28px 12px">
+   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border:1px solid #e3e3e3;border-radius:20px">
+    <tr><td style="padding:32px 30px 8px;text-align:center">
+      <img src="${CFG.LOGO_MAIL}" alt="Dub Edition VLC" width="230" style="max-width:230px;height:auto;display:inline-block">
+      <p style="margin:16px 0 0;color:#777777;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:bold">${CFG.EVENT_NAME} &middot; ${CFG.EVENT_DATE_SHORT}</p>
     </td></tr>
-    <tr><td style="padding:10px 30px 4px"><h1 style="margin:10px 0 6px;color:#fff;font-size:28px;line-height:1.15">${title}</h1></td></tr>
-    <tr><td style="padding:0 30px;color:#cfcfcf;font-size:15px;line-height:1.7">${inner}</td></tr>
-    ${cta ? `<tr><td align="center" style="padding:14px 30px 30px"><a href="${cta.url}" style="display:inline-block;background:#fff;color:#000;text-decoration:none;font-weight:bold;font-size:13px;letter-spacing:1.5px;padding:15px 26px;border-radius:999px">${cta.label}</a></td></tr>` : ''}
-    <tr><td style="padding:20px 30px;border-top:1px solid #222;text-align:center;color:#777;font-size:12px;line-height:1.6">
-      Dub Edition VLC · <a href="${CFG.INSTAGRAM}" style="color:#bbb">@dubeditionvlc</a> · #seguimosenlonuestro<br>
+    <tr><td style="padding:12px 30px 0"><h1 style="margin:14px 0 8px;color:#111111;font-size:26px;line-height:1.2">${title}</h1></td></tr>
+    <tr><td style="padding:0 30px;color:#333333;font-size:15px;line-height:1.7">${inner}</td></tr>
+    ${cta ? `<tr><td align="center" style="padding:18px 30px 32px"><a href="${cta.url}" style="display:inline-block;background:#111111;color:#ffffff;text-decoration:none;font-weight:bold;font-size:13px;letter-spacing:1.5px;padding:15px 28px;border-radius:999px">${cta.label}</a></td></tr>` : ''}
+    <tr><td style="padding:18px 30px;border-top:1px solid #eeeeee;text-align:center;color:#888888;font-size:12px;line-height:1.6">
+      Dub Edition VLC &middot; <a href="${CFG.INSTAGRAM}" style="color:#111111">@dubeditionvlc</a> &middot; #seguimosenlonuestro<br>
       Recibes este correo porque te inscribiste en ${CFG.EVENT_URL.replace('https://', '')}
     </td></tr>
    </table>
