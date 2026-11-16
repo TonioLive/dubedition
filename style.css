@@ -261,6 +261,13 @@ input:focus,textarea:focus,select:focus{border-color:#fff}
 .form-status.is-error{color:#ff7a70!important}
 .form-status.is-info{color:#ddd!important}
 .expo-form button[type=submit]:disabled{opacity:.6;cursor:wait}
+.schedule{max-width:860px;margin:36px auto 0;display:grid;gap:12px}
+.schedule-row{display:grid;grid-template-columns:190px minmax(0,1fr);gap:24px;align-items:center;padding:22px 26px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,#141414,#0c0c0c)}
+.schedule-row time{font-family:Anton,sans-serif;font-size:30px;letter-spacing:.02em;line-height:1}
+.schedule-row h3{margin:0 0 4px;font-size:19px}
+.schedule-row p{margin:0;font-size:15px;line-height:1.55}
+.schedule-row.is-highlight{border-color:rgba(255,255,255,.5);background:linear-gradient(180deg,#1f1f1f,#111)}
+@media(max-width:620px){.schedule-row{grid-template-columns:minmax(0,1fr);gap:8px;padding:18px 20px}.schedule-row time{font-size:26px}}
 .form-card[hidden]{display:none!important}
 .expo-success{align-items:center;text-align:center;padding:50px 34px}
 .expo-success>span{font-size:48px}
