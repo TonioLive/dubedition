@@ -16,6 +16,8 @@ const CFG = {
   EVENT_DATE: 'Sábado 21 de noviembre de 2026',
   EVENT_DATE_SHORT: '21.11.2026',
   EVENT_PLACE: 'Aspar Circuit · Guadassuar (Valencia)',
+  EVENT_ARRIVAL: '9:00 – 10:00',  // entrada de coches a la expo
+  EVENT_AWARDS: '13:30',          // entrega de premios
   EVENT_URL: 'https://dubedition.es/eventos/expo-aspar-circuit/',
   CHECKIN_URL: 'https://dubedition.es/eventos/expo-aspar-circuit/checkin/?t=',
   LOGO_BLACK: 'https://dubedition.es/assets/dub-edition-logo-black-sm.png',
@@ -357,6 +359,7 @@ function sendThanksMail_(o) {
      <b>${CFG.EVENT_NAME}</b>, el <b>${CFG.EVENT_DATE}</b> en ${CFG.EVENT_PLACE}.</p>
      <p>Las plazas de exposición son limitadas, así que vamos a revisar todas las solicitudes y las fotos con calma.
      <b>Muy pronto te escribiremos para decirte si tu coche ha sido seleccionado.</b></p>
+     <p>Para que lo vayas apuntando: la entrada de coches a la expo será de ${CFG.EVENT_ARRIVAL} y la entrega de premios, a las ${CFG.EVENT_AWARDS}.</p>
      <p>Mientras tanto, síguenos en Instagram para no perderte ninguna novedad del evento.</p>`,
     { label: 'VER EL EVENTO', url: CFG.EVENT_URL }
   );
@@ -375,9 +378,11 @@ function sendAcceptedMail_(o) {
        <tr><td style="padding:16px 20px;color:#333333;font-size:15px;line-height:1.8">
          <span style="color:#888888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Fecha</span><br><b style="color:#111111">${CFG.EVENT_DATE}</b><br>
          <span style="color:#888888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Lugar</span><br><b style="color:#111111">${CFG.EVENT_PLACE}</b><br>
+         <span style="color:#888888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Entrada de coches a la expo</span><br><b style="color:#111111">De ${CFG.EVENT_ARRIVAL}</b><br>
          <span style="color:#888888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Acceso</span><br><b style="color:#111111">${esc_(o.id)} &middot; ${esc_(o.matricula)}</b>
        </td></tr>
      </table>
+     <p><b>Llega entre las ${CFG.EVENT_ARRIVAL}</b>: es la franja de entrada de coches a la zona de exposición. A las ${CFG.EVENT_AWARDS} haremos la entrega de premios, ¡no te la pierdas!</p>
      <p><b>IMPORTANTE:</b> te adjuntamos un PDF con tu acreditación. <b>Imprímelo y colócalo en el salpicadero</b>
      (lado del copiloto). En la entrada escanearemos el código QR para darte acceso a la zona de exposición.</p>
      <p style="text-align:center;margin:24px 0"><img src="cid:qr" width="200" height="200" alt="Código QR de acceso"
@@ -479,13 +484,14 @@ function buildPdf_(o) {
       <img src="${logoDataUri_()}" style="width:300px">
       <p class="tag">${CFG.EVENT_NAME} · ${CFG.EVENT_DATE_SHORT}</p>
     </div>
-    <div class="pass">EXPOSITOR · ACCESO EXPO</div>
+    <div class="pass">EXPOSITOR · ENTRADA ${CFG.EVENT_ARRIVAL}</div>
     <div class="plate">${esc_(o.matricula)}</div>
     <p class="name">${esc_(o.nombre)} ${esc_(o.apellido)}</p>
     <p class="car">${esc_(o.marca)} ${esc_(o.modelo)}${o.instagram ? ' · ' + esc_(o.instagram) : ''}</p>
     <div class="qr"><img src="${qr}" style="width:250px;height:250px"></div>
     <p class="id">${esc_(o.id)}</p>
     <div class="foot">${CFG.EVENT_DATE} · ${CFG.EVENT_PLACE}<br>
+      Entrada de coches a la expo: ${CFG.EVENT_ARRIVAL} · Entrega de premios: ${CFG.EVENT_AWARDS}<br>
       Coloca esta hoja en el salpicadero (lado copiloto) y enséñala en la entrada. Acreditación personal e intransferible.</div>
   </body></html>`;
   return Utilities.newBlob(html, 'text/html', 'acreditacion.html')
