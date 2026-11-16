@@ -221,5 +221,44 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <a href="unete/">Únete</a>
   </div>
 </footer>
+<!-- Pop-up próximo evento (se oculta solo después del 21/11/2026) -->
+<dialog id="eventPopup" class="event-popup" aria-labelledby="eventPopupTitle">
+  <button type="button" class="event-popup-close" data-close aria-label="Cerrar">&times;</button>
+  <picture class="event-popup-media" aria-hidden="true"><source srcset="assets/photos/expo-aspar-hero.webp" type="image/webp"><img src="assets/photos/expo-aspar-hero.jpg" alt="" width="1024" height="640" loading="lazy" decoding="async"></picture>
+  <div class="event-popup-body">
+    <div class="event-popup-logos">
+      <img src="assets/dub-edition-logo-white-sm.png" alt="Dub Edition" width="640" height="114">
+      <span aria-hidden="true">×</span>
+      <img src="assets/aspar-circuit-logo-white.png" alt="Aspar Circuit" width="741" height="378">
+    </div>
+    <p class="eyebrow">Próximo evento · Sáb 21 nov</p>
+    <h2 id="eventPopupTitle">Expo Dub Edition en el Aspar Circuit</h2>
+    <ul class="event-popup-facts">
+      <li><b>Gratis</b></li>
+      <li>Entrada coches 9:00–10:00</li>
+      <li>Premios 13:30</li>
+      <li>Plazas limitadas</li>
+    </ul>
+    <p class="event-popup-text">Inscribe tu coche y, si entras, te llega por email tu acreditación con QR. Track day opcional (aparte) por 99&nbsp;€.</p>
+    <div class="event-popup-actions">
+      <a class="btn btn-primary" href="eventos/expo-aspar-circuit/#inscripcion">Inscribir mi coche</a>
+      <a class="btn btn-ghost" href="eventos/expo-aspar-circuit/">Ver evento</a>
+    </div>
+  </div>
+</dialog>
+<script>
+(() => {
+  const dlg = document.getElementById('eventPopup');
+  if (!dlg || typeof dlg.showModal !== 'function') return;
+  const END = new Date('2026-11-22T00:00:00+01:00');      // deja de salir tras el evento
+  const KEY = 'dubPopupExpoAspar';
+  let seen = null; try { seen = sessionStorage.getItem(KEY); } catch (e) {}
+  if (Date.now() >= END || seen) return;
+  const close = () => dlg.close();
+  dlg.addEventListener('close', () => { try { sessionStorage.setItem(KEY, '1'); } catch (e) {} });
+  dlg.addEventListener('click', e => { if (e.target === dlg || e.target.closest('[data-close]')) close(); });
+  setTimeout(() => { if (!document.querySelector('dialog[open]')) dlg.showModal(); }, 1200);
+})();
+</script>
 </body>
 </html>

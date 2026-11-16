@@ -398,3 +398,26 @@ input:focus,textarea:focus,select:focus{border-color:#fff}
 body{-webkit-user-select:none;-ms-user-select:none;user-select:none}
 img,.gallery-card,.photo-card,.mock-feed>*,.hero,.page-hero{-webkit-user-drag:none;user-drag:none}
 input,textarea,select,button,label{-webkit-user-select:auto;-ms-user-select:auto;user-select:auto}
+
+/* ---------- Pop-up de próximo evento (home) ---------- */
+.event-popup{padding:0;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg2);color:var(--text);width:min(460px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.event-popup::backdrop{background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.event-popup[open]{animation:popupIn .45s var(--ease-out)}
+@keyframes popupIn{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.event-popup[open]{animation:none}}
+html:has(.event-popup[open]){overflow:hidden}
+.event-popup-close{position:absolute;top:12px;right:12px;z-index:2;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.55);color:#fff;font-size:24px;line-height:1;cursor:pointer}
+.event-popup-media img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.event-popup-body{padding:22px 24px 26px}
+.event-popup-logos{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.event-popup-logos img{height:26px;width:auto}
+.event-popup-logos img+span+img{height:34px}
+.event-popup-logos span{color:var(--muted);font-weight:700}
+.event-popup h2{margin:6px 0 14px;font-size:clamp(24px,6vw,30px);line-height:1.05;text-transform:uppercase;letter-spacing:-.01em}
+.event-popup-facts{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;padding:0}
+.event-popup-facts li{border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.event-popup-facts li:first-child{background:#fff;color:#000;border-color:#fff}
+.event-popup-text{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.5}
+.event-popup-actions{display:flex;flex-wrap:wrap;gap:10px}
+.event-popup-actions .btn{flex:1 1 auto}
+.event-popup .eyebrow{margin:0 0 4px;letter-spacing:.18em}
