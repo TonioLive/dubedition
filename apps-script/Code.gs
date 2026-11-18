@@ -33,15 +33,25 @@ const CFG = {
   AUTO_THANKS: true,         // envía el correo de "gracias por inscribirte" al recibir el formulario
   MAX_PHOTOS: 5,
   MAX_PHOTO_BYTES: 4 * 1024 * 1024,
-  SEND_BATCH: 20             // correos con PDF por llamada (evita el límite de 6 min)
+  SEND_BATCH: 20,            // correos con PDF por llamada (evita el límite de 6 min)
+  EXPO_SPOTS: 60,            // plazas de la expo (se menciona en el correo de no seleccionado)
+  // Open Track Day del circuito (se reserva y se paga con Aspar Circuit, no con nosotros)
+  TRACKDAY_BOOK_URL: 'https://booking.prod.pixelcom.io/event/253B12041CF03725783D697150F940DB/register',
+  TRACKDAY_INFO_URL: 'https://asparcircuit.com/particulares/track-day-de-coches/',
+  TRACKDAY_HOURS: '9:00 – 13:00 y 14:00 – 17:00',
+  TRACKDAY_PRICE: '99 € reservando online (119 € pagando en recepción el mismo día)',
+  ASPAR_PHONE: '+34 96 311 51 55',
+  ASPAR_WHATSAPP: '+34 663 56 78 72',
+  ASPAR_EMAIL: 'reservas@asparcircuit.com'
 };
+const TANDAS_YES = ['Sí', 'Puede'];   // respuestas del formulario que reciben la info de tandas
 
 const STATUS = { PENDING: 'Pendiente', ACCEPTED: 'Aceptado', REJECTED: 'Rechazado' };
 
 const HEADERS = [
   'ID', 'Fecha inscripción', 'Estado', 'Email', 'Nombre', 'Apellido', 'Marca', 'Modelo',
   'Matrícula', 'Instagram', 'Descripción', 'Interés tandas', 'Fotos (IDs)', 'Carpeta fotos',
-  'Token QR', 'Gracias enviado', 'Respuesta enviada', 'Check-in', 'Notas'
+  'Token QR', 'Gracias enviado', 'Respuesta enviada', 'Check-in', 'Notas', 'Info tandas enviada'
 ];
 const COL = HEADERS.reduce((o, h, i) => (o[h] = i, o), {});
 
@@ -100,6 +110,7 @@ function onOpen() {
   SpreadsheetApp.getUi().createMenu('DUB EDITION')
     .addItem('Enviar agradecimientos pendientes', 'menuThanks_')
     .addItem('Enviar respuestas (aceptados / rechazados)', 'menuReplies_')
+    .addItem('Enviar info de tandas', 'menuTandas_')
     .addSeparator()
     .addItem('Ver claves de acceso', 'menuKeys_')
     .addToUi();
@@ -109,6 +120,11 @@ function menuReplies_() {
   let total = 0, r;
   do { r = sendReplies_(); total += r.sent; } while (r.remaining > 0 && r.sent > 0);
   SpreadsheetApp.getUi().alert('Respuestas enviadas: ' + total + (r.remaining ? ' · Quedan ' + r.remaining + ' (vuelve a ejecutarlo)' : ''));
+}
+function menuTandas_() {
+  let total = 0, r;
+  do { r = sendTandas_(); total += r.sent; } while (r.remaining > 0 && r.sent > 0);
+  SpreadsheetApp.getUi().alert('Info de tandas enviada: ' + total + (r.remaining ? ' · Quedan ' + r.remaining : ''));
 }
 function menuKeys_() {
   const p = PropertiesService.getScriptProperties();
@@ -136,6 +152,7 @@ function doPost(e) {
       case 'sendThanks': requireRole_(body.key, 'admin'); return json_(sendThanks_());
       case 'sendReplies':requireRole_(body.key, 'admin'); return json_(sendReplies_());
       case 'resend':     requireRole_(body.key, 'admin'); return json_(resend_(body.id));
+      case 'sendTandas': requireRole_(body.key, 'admin'); return json_(sendTandas_(body.id));
       case 'pdf':        requireRole_(body.key, 'admin'); return json_(pdfFor_(body.id));
       case 'checkin':    requireRole_(body.key, 'staff'); return json_(checkin_(body.token, body.id, body.undo));
       case 'attendance': requireRole_(body.key, 'staff'); return json_(attendance_());
@@ -235,6 +252,7 @@ function register_(b) {
    ADMIN
    ========================================================= */
 function list_() {
+  ensureHeaders_();
   const rows = data_(sheet_()).map(rowObj_);
   return {
     ok: true,
@@ -245,7 +263,7 @@ function list_() {
       id: r.id, fecha: r.fecha, estado: r.estado, email: r.email, nombre: r.nombre, apellido: r.apellido,
       marca: r.marca, modelo: r.modelo, matricula: r.matricula, instagram: r.instagram,
       descripcion: r.descripcion, tandas: r.tandas, fotos: r.fotos, carpeta: r.carpeta,
-      gracias: r.gracias, respuesta: r.respuesta, checkin: r.checkin, notas: r.notas
+      gracias: r.gracias, respuesta: r.respuesta, checkin: r.checkin, notas: r.notas, infoTandas: r.infoTandas
     }))
   };
 }
@@ -302,6 +320,39 @@ function resend_(id) {
   else sendThanksMail_(o);
   r.set(o.estado === STATUS.PENDING ? 'Gracias enviado' : 'Respuesta enviada', new Date());
   return { ok: true };
+}
+
+/** Info de tandas: a todos los que marcaron Sí / Puede (sin importar si están aceptados en la expo).
+ *  Sin id → envío masivo a los que aún no la tienen. Con id → (re)envío a esa persona. */
+function sendTandas_(id) {
+  checkSender_();
+  ensureHeaders_();
+  if (id) {
+    const r = findRow_(x => x[COL['ID']] === id) || fail_('Inscripción no encontrada.');
+    sendTandasMail_(rowObj_(r.values));
+    r.set('Info tandas enviada', new Date());
+    return { ok: true, sent: 1, remaining: 0 };
+  }
+  const t0 = Date.now();
+  let sent = 0, remaining = 0;
+  eachRow_(r => {
+    const o = rowObj_(r.values);
+    if (o.infoTandas || TANDAS_YES.indexOf(String(o.tandas)) < 0) return;
+    if (sent >= 40 || Date.now() - t0 > 4.5 * 60 * 1000) { remaining++; return; }
+    sendTandasMail_(o);
+    r.set('Info tandas enviada', new Date());
+    sent++;
+  });
+  return { ok: true, sent, remaining };
+}
+
+/** Añade a la hoja las columnas nuevas si aún no están (no mueve las existentes). */
+function ensureHeaders_() {
+  const sh = sheet_();
+  const cur = sh.getRange(1, 1, 1, HEADERS.length).getValues()[0];
+  HEADERS.forEach((h, i) => {
+    if (cur[i] !== h) sh.getRange(1, i + 1).setValue(h).setFontWeight('bold').setBackground('#000000').setFontColor('#ffffff');
+  });
 }
 
 function pdfFor_(id) {
@@ -389,7 +440,7 @@ function sendAcceptedMail_(o) {
        style="background:#ffffff;padding:10px;border:1px solid #e6e6e6;border-radius:12px"></p>
      <p>Si no puedes imprimirlo, enséñanos el QR desde el móvil. Y si al final no puedes venir, respóndenos a este
      correo para liberar la plaza.</p>
-     <p>Ese día también podrás rodar en pista: si te apetece hacer tandas, el circuito estará abierto para todo el que quiera.</p>`,
+     <p>Ese día también hay <b>Open Track Day</b> (${CFG.TRACKDAY_HOURS}): si quieres rodar, la reserva se hace directamente con Aspar Circuit en <a href="${CFG.TRACKDAY_INFO_URL}" style="color:#111111">su web</a>.</p>`,
     { label: 'INFO DEL EVENTO', url: CFG.EVENT_URL }
   );
   mail_(o.email, 'Aceptado · ' + CFG.EVENT_NAME, html, { attachments: [pdf], inlineImages: { qr: qr } });
@@ -397,16 +448,63 @@ function sendAcceptedMail_(o) {
 
 function sendRejectedMail_(o) {
   const html = mailLayout_(
-    'Gracias por tu inscripción',
+    'Esta vez no has sido seleccionado',
     `<p>Hola ${esc_(o.nombre)},</p>
-     <p>Hemos recibido muchísimas solicitudes para la <b>${CFG.EVENT_NAME}</b> y el espacio de exposición es limitado.
-     Esta vez tu ${esc_(o.marca)} ${esc_(o.modelo)} no ha entrado en la selección de la expo.</p>
-     <p>Aun así, <b>nos encantaría verte allí</b>: el ${CFG.EVENT_DATE} puedes venir a disfrutar del ambiente y,
-     si quieres, <b>rodar en pista haciendo tandas</b> en el circuito.</p>
-     <p>Seguiremos organizando KDDs, rutas y eventos: estate atento a nuestro Instagram.</p>`,
+     <p>Gracias de corazón por inscribir tu <b>${esc_(o.marca)} ${esc_(o.modelo)}</b> en la <b>${CFG.EVENT_NAME}</b>.</p>
+     <p>Hemos recibido <b>muchísimas inscripciones</b> y la expo es solo para <b>${CFG.EXPO_SPOTS} coches</b>, así que nos ha tocado
+     elegir y esta vez tu coche no ha entrado en la selección. Es una pena no poder cogeros a todos: había un nivelazo.</p>
+     <p><b>Igualmente te esperamos en el evento para pasar un día genial.</b> Ven a ver la expo, disfrutar del ambiente
+     de circuito y, si quieres, almorzar en el restaurante del circuito con vistas a la pista.</p>
+     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0;width:100%;background:#f6f6f6;border:1px solid #e6e6e6;border-radius:14px">
+       <tr><td style="padding:16px 20px;color:#333333;font-size:15px;line-height:1.8">
+         <span style="color:#888888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Cuándo</span><br><b style="color:#111111">${CFG.EVENT_DATE} &middot; desde las 9:00</b><br>
+         <span style="color:#888888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Dónde</span><br><b style="color:#111111">${CFG.EVENT_PLACE}</b><br>
+         <span style="color:#888888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Entrega de premios</span><br><b style="color:#111111">${CFG.EVENT_AWARDS}</b>
+       </td></tr>
+     </table>
+     <p>Y si te apetece rodar, ese día hay <b>Open Track Day</b> (${CFG.TRACKDAY_HOURS}). La reserva se hace directamente con
+     Aspar Circuit en <a href="${CFG.TRACKDAY_INFO_URL}" style="color:#111111">su web</a>.</p>
+     <p>Seguiremos organizando KDDs, rutas y eventos, así que estate atento a nuestro Instagram: habrá más ocasiones.</p>
+     <p>¡Nos vemos el sábado!</p>`,
     { label: 'VER EL EVENTO', url: CFG.EVENT_URL }
   );
-  mail_(o.email, CFG.EVENT_NAME + ' · Respuesta a tu inscripción', html);
+  mail_(o.email, 'Respuesta a tu inscripción · ' + CFG.EVENT_NAME, html);
+}
+
+function sendTandasMail_(o) {
+  const row = (k, v) => `<span style="color:#888888;font-size:12px;text-transform:uppercase;letter-spacing:1px">${k}</span><br><b style="color:#111111">${v}</b><br>`;
+  const html = mailLayout_(
+    'Cómo apuntarte a las tandas',
+    `<p>Hola ${esc_(o.nombre)},</p>
+     <p>En tu inscripción nos dijiste que te interesa <b>rodar en pista</b> el sábado 21. Te dejamos toda la información.</p>
+     <p style="background:#fff4d6;border:1px solid #f0d58a;border-radius:12px;padding:14px 16px;color:#5a4500">
+       <b>Importante:</b> las tandas <b>no las gestiona Dub Edition</b>. Son el <b>Open Track Day del Aspar Circuit</b> y la plaza
+       se reserva y se paga directamente con el circuito. Tu inscripción en la expo <b>no incluye</b> las tandas
+       (y para rodar no hace falta estar en la expo).</p>
+     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0;width:100%;background:#f6f6f6;border:1px solid #e6e6e6;border-radius:14px">
+       <tr><td style="padding:16px 20px;color:#333333;font-size:15px;line-height:1.8">
+         ${row('Día', CFG.EVENT_DATE)}
+         ${row('Horario de pista', CFG.TRACKDAY_HOURS + ' (7 horas, rueda de forma ilimitada)')}
+         ${row('Precio', CFG.TRACKDAY_PRICE)}
+         ${row('Plazas', 'Limitadas · máximo 20 coches a la vez en pista')}
+       </td></tr>
+     </table>
+     <p><b>Requisitos del circuito:</b></p>
+     <ul style="margin:0 0 14px;padding-left:20px">
+       <li>Seguro obligatorio (se puede contratar en el circuito por 15 €).</li>
+       <li>Casco obligatorio.</li>
+       <li>Gancho de remolque obligatorio.</li>
+       <li>Máximo piloto y copiloto.</li>
+       <li>Verificación técnica del coche antes de salir a pista.</li>
+       <li>Ventanillas cerradas o totalmente abiertas.</li>
+     </ul>
+     <p><b>Cómo reservar:</b> pulsa el botón de abajo y completa la reserva en la web de Aspar Circuit. Te recomendamos
+     hacerlo cuanto antes porque las plazas son limitadas y online sale más barato.</p>
+     <p>Si tienes dudas sobre las tandas, escribe al circuito: ${CFG.ASPAR_PHONE} &middot; WhatsApp ${CFG.ASPAR_WHATSAPP}
+     &middot; ${CFG.ASPAR_EMAIL}. Para cualquier cosa de la expo, respóndenos a este correo.</p>`,
+    { label: 'RESERVAR TANDAS EN ASPAR', url: CFG.TRACKDAY_BOOK_URL }
+  );
+  mail_(o.email, 'Info para hacer tandas · ' + CFG.EVENT_NAME, html);
 }
 
 function mail_(to, subject, html, extra) {
@@ -537,7 +635,7 @@ function rowObj_(r) {
     instagram: r[COL['Instagram']], descripcion: r[COL['Descripción']], tandas: r[COL['Interés tandas']],
     fotos: String(r[COL['Fotos (IDs)']] || '').split(',').filter(Boolean), carpeta: r[COL['Carpeta fotos']],
     token: r[COL['Token QR']], gracias: iso(r[COL['Gracias enviado']]), respuesta: iso(r[COL['Respuesta enviada']]),
-    checkin: iso(r[COL['Check-in']]), notas: r[COL['Notas']]
+    checkin: iso(r[COL['Check-in']]), notas: r[COL['Notas']], infoTandas: iso(r[COL['Info tandas enviada']])
   };
 }
 function role_(key) {

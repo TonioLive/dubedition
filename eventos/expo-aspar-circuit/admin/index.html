@@ -49,6 +49,13 @@
         <button class="chip" data-f="Aceptado" type="button">Aceptados</button>
         <button class="chip" data-f="Rechazado" type="button">Rechazados</button>
       </div>
+      <div class="chips" id="tFilters" aria-label="Filtrar por interés en tandas">
+        <button class="chip active" data-t="all" type="button">Tandas: todos</button>
+        <button class="chip" data-t="yes" type="button">🏁 Quieren tandas</button>
+        <button class="chip" data-t="Sí" type="button">Sí</button>
+        <button class="chip" data-t="Puede" type="button">Puede</button>
+        <button class="chip" data-t="no" type="button">Solo expo</button>
+      </div>
       <input class="grow" id="search" type="search" placeholder="Buscar nombre, marca, matrícula, Instagram…">
       <button class="p-btn" id="refresh" type="button">↻ Actualizar</button>
     </div>
@@ -56,6 +63,7 @@
     <div class="toolbar">
       <button class="p-btn" id="sendThanks" type="button">✉️ Enviar agradecimientos (<span>0</span>)</button>
       <button class="p-btn white" id="sendReplies" type="button" title="Envía el PDF con QR a los aceptados y el aviso a los rechazados que aún no lo han recibido">🚀 Enviar respuestas (<span>0</span>)</button>
+      <button class="p-btn" id="sendTandas" type="button" title="Envía cómo reservar las tandas en la web de Aspar a todos los que marcaron Sí o Puede y aún no la tienen">🏁 Enviar info tandas (<span>0</span>)</button>
       <a class="p-btn" id="sheetLink" target="_blank" rel="noopener">📊 Hoja de cálculo</a>
       <a class="p-btn" id="folderLink" target="_blank" rel="noopener">📁 Fotos en Drive</a>
       <span class="meta" id="quota"></span>

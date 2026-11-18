@@ -5,6 +5,8 @@
   let key = localStorage.getItem(KEY_STORE) || '';
   let items = [];
   let filter = 'all';
+  let tfilter = 'all';
+  const wantsTandas = (i) => i.tandas === 'Sí' || i.tandas === 'Puede';
   let query = '';
 
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -47,10 +49,10 @@
   $('#refresh').addEventListener('click', () => load());
 
   function counts() {
-    const c = { total: items.length, pend: 0, acc: 0, rej: 0, tandas: 0, in: 0, thanks: 0, replies: 0 };
+    const c = { total: items.length, pend: 0, acc: 0, rej: 0, tandas: 0, in: 0, thanks: 0, replies: 0, tinfo: 0 };
     items.forEach((i) => {
       if (i.estado === 'Aceptado') c.acc++; else if (i.estado === 'Rechazado') c.rej++; else c.pend++;
-      if (i.tandas === 'Sí' || i.tandas === 'Puede') c.tandas++;
+      if (wantsTandas(i)) { c.tandas++; if (!i.infoTandas) c.tinfo++; }
       if (i.checkin) c.in++;
       if (!i.gracias) c.thanks++;
       if (!i.respuesta && (i.estado === 'Aceptado' || i.estado === 'Rechazado')) c.replies++;
@@ -65,9 +67,12 @@
     $('#sendThanks').disabled = !c.thanks;
     $('#sendReplies span').textContent = c.replies;
     $('#sendReplies').disabled = !c.replies;
+    $('#sendTandas span').textContent = c.tinfo;
+    $('#sendTandas').disabled = !c.tinfo;
 
     const q = query.toLowerCase();
-    const list = items.filter((i) => (filter === 'all' || i.estado === filter) &&
+    const tOk = (i) => tfilter === 'all' || (tfilter === 'yes' ? wantsTandas(i) : tfilter === 'no' ? !wantsTandas(i) : i.tandas === tfilter);
+    const list = items.filter((i) => (filter === 'all' || i.estado === filter) && tOk(i) &&
       (!q || [i.nombre, i.apellido, i.marca, i.modelo, i.matricula, i.instagram, i.email, i.id].join(' ').toLowerCase().includes(q)));
 
     const box = $('#cards');
@@ -97,6 +102,7 @@
         <div class="flags">
           <span class="flag ${i.gracias ? 'on' : ''}">${i.gracias ? '✓' : '·'} Gracias</span>
           <span class="flag ${i.respuesta ? 'on' : ''}">${i.respuesta ? '✓ Respuesta ' + fdate(i.respuesta) : '· Respuesta sin enviar'}</span>
+          ${wantsTandas(i) ? `<span class="flag ${i.infoTandas ? 'on' : ''}">${i.infoTandas ? '✓ Info tandas ' + fdate(i.infoTandas) : '· Info tandas sin enviar'}</span>` : ''}
           ${i.checkin ? `<span class="flag on">✓ Check-in ${fdate(i.checkin)}</span>` : ''}
         </div>
       </div>
@@ -106,6 +112,7 @@
         ${i.estado !== 'Pendiente' ? '<button class="p-btn small" data-act="Pendiente" type="button">↺ Pendiente</button>' : ''}
         ${i.estado === 'Aceptado' ? '<button class="p-btn small" data-pdf type="button">PDF</button>' : ''}
         ${i.estado !== 'Pendiente' && i.respuesta ? '<button class="p-btn small" data-resend type="button">Reenviar</button>' : ''}
+        ${wantsTandas(i) ? `<button class="p-btn small" data-tandas type="button">${i.infoTandas ? 'Reenviar tandas' : 'Info tandas'}</button>` : ''}
       </div>
     </article>`;
   }
@@ -149,6 +156,13 @@
       el.disabled = false; el.textContent = 'PDF';
       return;
     }
+    if (el.hasAttribute('data-tandas')) {
+      if (!confirm(`¿Enviar la info para reservar tandas a ${item.email}?`)) return;
+      el.disabled = true;
+      try { await window.dubApi('sendTandas', { key, id: item.id }); item.infoTandas = new Date().toISOString(); render(); notice(`Info de tandas enviada a ${item.email}.`, 'ok'); }
+      catch (err) { notice(err.message, 'error'); el.disabled = false; }
+      return;
+    }
     if (el.hasAttribute('data-resend')) {
       if (!confirm(`¿Reenviar el correo de "${item.estado}" a ${item.email}?`)) return;
       el.disabled = true;
@@ -188,11 +202,34 @@
     load(true);
   });
 
+  $('#sendTandas').addEventListener('click', async (e) => {
+    const n = counts().tinfo;
+    if (!confirm(`Se enviará a ${n} persona(s) que marcaron "Sí" o "Puede" en tandas el correo con cómo reservar en la web de Aspar Circuit (da igual si están aceptados o no en la expo). ¿Continuar?`)) return;
+    e.currentTarget.disabled = true;
+    let total = 0;
+    try {
+      for (let guard = 0; guard < 50; guard++) {
+        notice(`Enviando info de tandas… ${total} enviadas`);
+        const r = await window.dubApi('sendTandas', { key });
+        total += r.sent;
+        if (!r.remaining || !r.sent) break;
+      }
+      notice(`Info de tandas enviada: ${total}.`, 'ok');
+    } catch (err) { notice(`Enviadas ${total}. Error: ${err.message}`, 'error'); }
+    load(true);
+  });
+
   /* ---------- Filtros ---------- */
   $('#filters').addEventListener('click', (e) => {
     const b = e.target.closest('.chip'); if (!b) return;
     filter = b.dataset.f;
     document.querySelectorAll('#filters .chip').forEach((c) => c.classList.toggle('active', c === b));
+    render();
+  });
+  $('#tFilters').addEventListener('click', (e) => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    tfilter = b.dataset.t;
+    document.querySelectorAll('#tFilters .chip').forEach((c) => c.classList.toggle('active', c === b));
     render();
   });
   $('#search').addEventListener('input', (e) => { query = e.target.value.trim(); render(); });
