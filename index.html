@@ -221,6 +221,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <a href="unete/">Únete</a>
   </div>
 </footer>
+<script defer src="assets/countdown.js"></script>
 <!-- Pop-up próximo evento (se oculta solo después del 21/11/2026) -->
 <dialog id="eventPopup" class="event-popup" aria-labelledby="eventPopupTitle">
   <button type="button" class="event-popup-close" data-close aria-label="Cerrar">&times;</button>
@@ -239,9 +240,15 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       <li>Premios 13:30</li>
       <li>Plazas limitadas</li>
     </ul>
-    <p class="event-popup-text">Inscribe tu coche y, si entras, te llega por email tu acreditación con QR. Track day opcional (aparte) por 99&nbsp;€.</p>
+    <div class="countdown countdown-popup" data-countdown data-deadline="2026-11-19T21:00:00+01:00">
+      <span class="cd-label">Las inscripciones para la expo cierran hoy a las 21:00</span>
+      <span class="cd-clock" aria-live="off"><b data-u="h">--</b><small>h</small><b data-u="m">--</b><small>min</small><b data-u="s">--</b><small>s</small></span>
+      <span class="cd-closed">Inscripciones cerradas · ¡Te esperamos el sábado! Entrada gratis</span>
+    </div>
+    <p class="event-popup-text" data-open-only>Inscribe tu coche y, si entras, te llega por email tu acreditación con QR. Track day opcional (aparte) por 99&nbsp;€.</p>
+    <p class="event-popup-text" data-closed-only hidden>La selección de coches ya está hecha. Ven a ver la expo y el track day: la entrada es gratis.</p>
     <div class="event-popup-actions">
-      <a class="btn btn-primary" href="eventos/expo-aspar-circuit/#inscripcion">Inscribir mi coche</a>
+      <a class="btn btn-primary" href="eventos/expo-aspar-circuit/#inscripcion" data-open-only>Inscribir mi coche</a>
       <a class="btn btn-ghost" href="eventos/expo-aspar-circuit/">Ver evento</a>
     </div>
   </div>

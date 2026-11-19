@@ -34,7 +34,8 @@ const CFG = {
   MAX_PHOTOS: 5,
   MAX_PHOTO_BYTES: 4 * 1024 * 1024,
   SEND_BATCH: 20,            // correos con PDF por llamada (evita el límite de 6 min)
-  EXPO_SPOTS: 60,            // plazas de la expo (se menciona en el correo de no seleccionado)
+  EXPO_SPOTS: 60,
+  REG_DEADLINE: '2026-11-19T21:00:00+01:00',   // cierre de inscripciones (hora de Madrid)            // plazas de la expo (se menciona en el correo de no seleccionado)
   // Open Track Day del circuito (se reserva y se paga con Aspar Circuit, no con nosotros)
   TRACKDAY_BOOK_URL: 'https://booking.prod.pixelcom.io/event/253B12041CF03725783D697150F940DB/register',
   TRACKDAY_INFO_URL: 'https://asparcircuit.com/particulares/track-day-de-coches/',
@@ -168,6 +169,8 @@ function doPost(e) {
    ========================================================= */
 function register_(b) {
   if (b.website) return { ok: true }; // honeypot anti-spam
+  if (CFG.REG_DEADLINE && Date.now() >= new Date(CFG.REG_DEADLINE).getTime())
+    return { ok: false, error: 'Las inscripciones para la expo ya están cerradas. ¡Te esperamos el sábado! La entrada es gratis.' };
   const d = {
     email: clean_(b.email, 120).toLowerCase(),
     nombre: clean_(b.nombre, 60),

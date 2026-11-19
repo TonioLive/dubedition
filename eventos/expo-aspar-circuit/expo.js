@@ -17,10 +17,14 @@
   const success = document.getElementById('expoSuccess');
   let photos = []; // { name, data }
 
-  if (cfg.inscripcionesAbiertas === false) {
+  function closeForm() {
     form.querySelectorAll('input,textarea,select,button').forEach((el) => (el.disabled = true));
-    setStatus('Las inscripciones para la expo están cerradas. ¡Te esperamos en el circuito!', 'info');
+    form.classList.add('is-closed');
+    setStatus('Las inscripciones para la expo ya están cerradas. ¡Te esperamos el sábado en el circuito! La entrada es gratis.', 'info');
   }
+  if (cfg.inscripcionesAbiertas === false) closeForm();
+  window.addEventListener('dub:inscripciones-cerradas', closeForm);
+  if (window.DUB_DEADLINE && Date.now() >= window.DUB_DEADLINE) closeForm();
 
   /* ---------- Fotos ---------- */
   const compress = (file) => new Promise((resolve, reject) => {

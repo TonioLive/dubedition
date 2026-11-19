@@ -75,6 +75,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../style.css">
 <script defer src="../../script.js"></script>
+<script defer src="../../assets/countdown.js"></script>
 <script defer src="config.js"></script>
 <script defer src="expo.js"></script>
 </head>
@@ -105,8 +106,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <p class="eyebrow">Sábado 21 de noviembre · Aspar Circuit</p>
     <h1>Expo en circuito.</h1>
     <p>Dub Edition lleva su expo de coches al Aspar Circuit: un día para vivir el ambiente del circuito, ver proyectos de toda la comunidad y, si te atreves, salir a pista a hacer tandas.</p>
+    <div class="countdown" data-countdown data-deadline="2026-11-19T21:00:00+01:00">
+      <span class="cd-label">Las inscripciones para la expo cierran hoy a las 21:00</span>
+      <span class="cd-clock" aria-live="off"><b data-u="h">--</b><small>h</small><b data-u="m">--</b><small>min</small><b data-u="s">--</b><small>s</small></span>
+      <span class="cd-closed">Inscripciones cerradas · ¡Te esperamos el sábado! Entrada gratis</span>
+    </div>
     <div class="hero-actions">
-      <a class="btn btn-primary" href="#inscripcion">INSCRIBIR MI COCHE</a>
+      <a class="btn btn-primary" href="#inscripcion" data-open-only>INSCRIBIR MI COCHE</a>
       <a class="btn btn-ghost" href="#tandas">QUIERO HACER TANDAS</a>
     </div>
   </div>
@@ -175,6 +181,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <p class="eyebrow">Inscripción expo</p>
     <h2>Expón tu coche en el Aspar Circuit.</h2>
     <p>Plazas limitadas. Revisaremos todas las solicitudes y te responderemos por email. Cuantas mejores fotos subas, más fácil será que tu coche entre.</p>
+    <div class="countdown countdown-inline" data-countdown data-deadline="2026-11-19T21:00:00+01:00">
+      <span class="cd-label">Las inscripciones para la expo cierran hoy a las 21:00</span>
+      <span class="cd-clock" aria-live="off"><b data-u="h">--</b><small>h</small><b data-u="m">--</b><small>min</small><b data-u="s">--</b><small>s</small></span>
+      <span class="cd-closed">Inscripciones cerradas · ¡Te esperamos el sábado! Entrada gratis</span>
+    </div>
     <ul class="expo-checklist">
       <li>Recibirás un email confirmando tu inscripción.</li>
       <li>Entrada de coches a la expo de 9:00 a 10:00.</li>
