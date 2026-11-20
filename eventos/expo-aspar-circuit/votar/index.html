@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MEZVFLMRC8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-MEZVFLMRC8');
+</script>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-WRXQTW3Q');</script>
+<!-- End Google Tag Manager -->
+<link rel="icon" type="image/png" sizes="32x32" href="../../../favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../../../favicon-16x16.png">
+<link rel="icon" href="../../../favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="../../../apple-touch-icon.png">
+<meta name="theme-color" content="#000000">
+<title>Vota a los mejores coches · Expo Dub Edition × Aspar Circuit | Dub Edition VLC</title>
+<meta name="description" content="Vota a tus 4 coches favoritos de la Expo Dub Edition × Aspar Circuit. El público decide el 50 % y la organización el otro 50 %. Ranking en directo.">
+<link rel="canonical" href="https://dubedition.es/eventos/expo-aspar-circuit/votar/">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_ES">
+<meta property="og:site_name" content="Dub Edition VLC">
+<meta property="og:title" content="Vota a los mejores coches de la Expo Dub Edition × Aspar Circuit">
+<meta property="og:description" content="Elige hasta 4 coches y sigue el ranking en directo. 50 % público · 50 % organización.">
+<meta property="og:url" content="https://dubedition.es/eventos/expo-aspar-circuit/votar/">
+<meta property="og:image" content="https://dubedition.es/assets/photos/expo-aspar-hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../style.css">
+<link rel="stylesheet" href="votar.css">
+<script defer src="../../../script.js"></script>
+<script defer src="../config.js"></script>
+<script defer src="votar.js"></script>
+</head>
+<body class="vote-page">
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WRXQTW3Q" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<header class="site-header">
+  <a href="../../../" class="brand brand-logo" aria-label="Dub Edition inicio">
+    <img src="../../../assets/dub-edition-logo-white-sm.png" alt="Logo Dub Edition VLC" width="640" height="114">
+    <span class="sr-only">Dub Edition</span>
+  </a>
+  <button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
+  <nav class="main-nav" aria-label="Navegación principal">
+    <a class="" href="../../../">Inicio</a><a class="" href="../../../kdds/">KDDs</a><a class="" href="../../../rutas/">Rutas</a><a class="active" href="../../">Eventos</a><a class="" href="../../../comunidad/">Comunidad</a><a class="" href="../../../unete/">Únete</a>
+  </nav>
+</header>
+
+<main>
+<section class="page-hero vote-hero">
+  <picture class="hero-media" aria-hidden="true"><source srcset="../../../assets/photos/expo-aspar-hero.webp" type="image/webp"><img src="../../../assets/photos/expo-aspar-hero.jpg" alt="" width="1024" height="640" fetchpriority="high"></picture>
+  <div class="hero-content">
+    <p class="eyebrow">Expo Dub Edition × Aspar Circuit · Votación</p>
+    <h1>Vota a tus<br>mejores coches</h1>
+    <p>Elige <b>hasta 4 coches</b> de la expo. El resultado final cuenta un <b>50&nbsp;% el voto del público</b> y un <b>50&nbsp;% el de la organización</b>. Los más votados se llevan el <b>Top 3 Expo</b> en la entrega de premios de las 13:30.</p>
+    <div class="vote-close" id="voteClose" hidden>
+      <span class="vc-label">La votación cierra en</span>
+      <span class="vc-clock"><b data-u="h">--</b><small>h</small><b data-u="m">--</b><small>min</small><b data-u="s">--</b><small>s</small></span>
+    </div>
+  </div>
+</section>
+
+<div class="vote-tabs" role="tablist">
+  <button class="vt active" role="tab" aria-selected="true" data-tab="votar" type="button">🗳️ Votar</button>
+  <button class="vt" role="tab" aria-selected="false" data-tab="ranking" type="button">🏆 Ranking</button>
+</div>
+
+<section class="vote-panel" id="tab-votar">
+  <div class="vote-toolbar">
+    <input id="carSearch" type="search" placeholder="Buscar por marca, modelo, Instagram o nº (DUB-001)…" aria-label="Buscar coche">
+    <p class="vote-hint" id="voteHint">Toca <b>Votar</b> en los coches que más te gusten (máximo 4).</p>
+  </div>
+  <div class="vote-notice" id="voteNotice" hidden></div>
+  <div class="car-grid" id="carGrid" aria-live="polite"><p class="muted">Cargando coches…</p></div>
+</section>
+
+<section class="vote-panel" id="tab-ranking" hidden>
+  <div class="rank-head">
+    <div>
+      <p class="eyebrow">Top en directo</p>
+      <h2>Ranking de la expo</h2>
+      <p class="muted" id="rankMeta">Cargando…</p>
+    </div>
+    <div class="rank-legend"><span><i class="rl-pub"></i>50&nbsp;% público</span><span><i class="rl-org"></i>50&nbsp;% organización</span></div>
+  </div>
+  <ol class="rank-list" id="rankList"></ol>
+</section>
+</main>
+
+<div class="vote-bar" id="voteBar" hidden>
+  <div class="vb-slots" id="vbSlots"></div>
+  <button class="btn btn-primary" id="vbSend" type="button">Enviar voto (<span>0</span>/4)</button>
+</div>
+
+<dialog class="vote-modal" id="voteModal" aria-labelledby="vmTitle">
+  <form method="dialog" id="voteForm" novalidate>
+    <button class="vm-close" value="cancel" type="submit" aria-label="Cerrar" formnovalidate>&times;</button>
+    <p class="eyebrow">Confirma tu voto</p>
+    <h2 id="vmTitle">Tus coches</h2>
+    <ul class="vm-cars" id="vmCars"></ul>
+    <label>Nombre<input name="nombre" id="vNombre" autocomplete="name" required maxlength="60"></label>
+    <label>Correo electrónico<input name="email" id="vEmail" type="email" autocomplete="email" required maxlength="120"></label>
+    <label id="pinWrap" hidden>PIN de organización<input name="pin" id="vPin" inputmode="numeric" autocomplete="off" maxlength="10"></label>
+    <input type="text" name="website" id="vWeb" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
+    <p class="vm-note">Solo se puede votar <b>una vez por correo</b>. Lo usamos únicamente para evitar votos duplicados.</p>
+    <p class="vm-msg" id="vmMsg" role="status"></p>
+    <button class="btn btn-primary vm-submit" id="vmSubmit" type="submit" value="send">ENVIAR MI VOTO</button>
+  </form>
+</dialog>
+
+<footer class="site-footer reveal">
+  <div>
+    <p class="eyebrow">DUB EDITION VLC</p>
+    <h2>Seguimos en lo nuestro.</h2>
+    <p>Rutas, eventos, comunidad y cultura del motor desde Valencia.</p>
+  </div>
+  <div class="footer-links">
+    <a href="https://www.instagram.com/dubeditionvlc" target="_blank" rel="noopener">Instagram</a>
+    <a href="https://www.instagram.com/channel/AbYgdCJDxc26Cs2u/?igsh=MzJocHFnZHQ5ZnM3" target="_blank" rel="noopener">Canal</a>
+    <a href="../../../unete/">Únete</a>
+  </div>
+</footer>
+</body>
+</html>

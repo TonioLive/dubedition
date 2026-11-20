@@ -35,6 +35,11 @@ const CFG = {
   MAX_PHOTO_BYTES: 4 * 1024 * 1024,
   SEND_BATCH: 20,            // correos con PDF por llamada (evita el límite de 6 min)
   EXPO_SPOTS: 60,
+  // Votación "Vota a los mejores coches" (50 % organización + 50 % público)
+  VOTE_SHEET: 'Votos',
+  VOTE_MAX: 4,
+  VOTE_ORG_EMAIL: 'info@dubedition.es',          // los votos con este correo (+ PIN de jurado) cuentan como organización
+  VOTE_DEADLINE: '2026-11-21T13:00:00+01:00',    // cierre de la votación (premios a las 13:30)
   MAP_IMG: 'https://dubedition.es/assets/mail/plano-expo-aspar.jpg',
   MAPS_URL: 'https://maps.app.goo.gl/pXrFuxaSXsFm1w6R7',
   ADDRESS: 'Polígono 28, Parcela 26 · 46610 Guadassuar (Valencia)',
@@ -160,6 +165,9 @@ function doPost(e) {
       case 'sendTandas': requireRole_(body.key, 'admin'); return json_(sendTandas_(body.id));
       case 'sendDayInfo': requireRole_(body.key, 'admin'); return json_(sendDayInfo_(body.id));
       case 'sendRejectedThanks': requireRole_(body.key, 'admin'); return json_(sendRejectedThanks_());
+      case 'vote':       return json_(vote_(body));
+      case 'results':    return json_(results_());
+      case 'votePin':    requireRole_(body.key, 'admin'); return json_({ ok: true, pin: votePin_() });
       case 'pdf':        requireRole_(body.key, 'admin'); return json_(pdfFor_(body.id));
       case 'checkin':    requireRole_(body.key, 'staff'); return json_(checkin_(body.token, body.id, body.undo));
       case 'attendance': requireRole_(body.key, 'staff'); return json_(attendance_());
@@ -526,6 +534,95 @@ function sendRejectedThanksMail_(o) {
     { label: 'VER EL EVENTO', url: CFG.EVENT_URL }
   );
   mail_(o.email, 'Gracias por inscribirte · Te esperamos el sábado en Aspar Circuit', html);
+}
+
+/* =========================================================
+   VOTACIÓN · Vota a los mejores coches
+   ========================================================= */
+const VOTE_HEADERS = ['Fecha', 'Nombre', 'Email', 'Tipo', 'Coches', 'Dispositivo'];
+
+function voteSheet_() {
+  const ss = SpreadsheetApp.openById(CFG.SHEET_ID);
+  let sh = ss.getSheetByName(CFG.VOTE_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(CFG.VOTE_SHEET);
+    sh.getRange(1, 1, 1, VOTE_HEADERS.length).setValues([VOTE_HEADERS]).setFontWeight('bold').setBackground('#000000').setFontColor('#ffffff');
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+
+/** PIN del jurado (organización). Se guarda en Propiedades del script, nunca en el código. */
+function votePin_() {
+  const p = PropertiesService.getScriptProperties();
+  let pin = p.getProperty('VOTE_PIN');
+  if (!pin) { pin = String(Math.floor(100000 + Math.random() * 900000)); p.setProperty('VOTE_PIN', pin); }
+  return pin;
+}
+
+function acceptedIds_() {
+  const ids = {};
+  eachRow_(r => { const o = rowObj_(r.values); if (o.estado === STATUS.ACCEPTED) ids[o.id] = true; });
+  return ids;
+}
+
+function vote_(b) {
+  if (b.website) return { ok: true };                       // honeypot
+  if (Date.now() >= new Date(CFG.VOTE_DEADLINE).getTime()) fail_('La votación ya está cerrada. ¡Gracias por participar!');
+  const nombre = String(b.nombre || '').trim().replace(/\s+/g, ' ').slice(0, 60);
+  const email = String(b.email || '').trim().toLowerCase().slice(0, 120);
+  if (nombre.length < 2) fail_('Escribe tu nombre.');
+  if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) fail_('El correo no es válido.');
+  let cars = Array.isArray(b.cars) ? b.cars.map(String) : [];
+  cars = cars.filter((c, i) => cars.indexOf(c) === i);       // sin repetidos
+  if (!cars.length) fail_('Elige al menos un coche.');
+  if (cars.length > CFG.VOTE_MAX) fail_('Puedes votar como máximo ' + CFG.VOTE_MAX + ' coches.');
+  const valid = acceptedIds_();
+  if (cars.some(c => !valid[c])) fail_('Alguno de los coches no es válido. Recarga la página.');
+
+  const org = email === CFG.VOTE_ORG_EMAIL;
+  if (org && String(b.pin || '').trim() !== votePin_()) fail_('PIN de organización incorrecto.');
+
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const sh = voteSheet_();
+    const last = sh.getLastRow();
+    const rows = last > 1 ? sh.getRange(2, 1, last - 1, VOTE_HEADERS.length).getValues() : [];
+    const norm = t => String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+    const dup = rows.some(r => org
+      ? (String(r[2]).toLowerCase() === email && norm(r[1]) === norm(nombre))
+      : String(r[2]).toLowerCase() === email);
+    if (dup) fail_(org ? 'Este organizador ya ha votado.' : 'Este correo ya ha votado. Solo se puede votar una vez.');
+    sh.appendRow([new Date(), nombre, email, org ? 'Organización' : 'Público', cars.join(','), String(b.device || '').slice(0, 40)]);
+  } finally { lock.releaseLock(); }
+  CacheService.getScriptCache().remove('vote_results');
+  return { ok: true, tipo: org ? 'organizacion' : 'publico', results: results_(true) };
+}
+
+/** Puntuación = 50 % cuota de votos de la organización + 50 % cuota del público.
+ *  Si uno de los dos grupos aún no ha votado, cuenta solo el otro. */
+function results_(fresh) {
+  const cache = CacheService.getScriptCache();
+  if (!fresh) { const c = cache.get('vote_results'); if (c) return JSON.parse(c); }
+  const sh = voteSheet_(); const last = sh.getLastRow();
+  const rows = last > 1 ? sh.getRange(2, 1, last - 1, VOTE_HEADERS.length).getValues() : [];
+  const pub = {}, org = {}; let pubTot = 0, orgTot = 0, pubVoters = 0, orgVoters = 0;
+  rows.forEach(r => {
+    const isOrg = r[3] === 'Organización';
+    const list = String(r[4] || '').split(',').filter(Boolean);
+    if (isOrg) orgVoters++; else pubVoters++;
+    list.forEach(id => { if (isOrg) { org[id] = (org[id] || 0) + 1; orgTot++; } else { pub[id] = (pub[id] || 0) + 1; pubTot++; } });
+  });
+  const ids = Object.keys(Object.assign({}, pub, org));
+  const wP = pubTot && orgTot ? 0.5 : (pubTot ? 1 : 0), wO = pubTot && orgTot ? 0.5 : (orgTot ? 1 : 0);
+  const ranking = ids.map(id => {
+    const sp = pubTot ? (pub[id] || 0) / pubTot : 0, so = orgTot ? (org[id] || 0) / orgTot : 0;
+    return { id, pct: Math.round((wP * sp + wO * so) * 1000) / 10, publico: Math.round(sp * 1000) / 10, organizacion: Math.round(so * 1000) / 10, votos: (pub[id] || 0) + (org[id] || 0) };
+  }).sort((a, b) => b.pct - a.pct || b.votos - a.votos);
+  const out = { ok: true, ranking, votantes: { publico: pubVoters, organizacion: orgVoters },
+    cierre: CFG.VOTE_DEADLINE, cerrada: Date.now() >= new Date(CFG.VOTE_DEADLINE).getTime(), actualizado: new Date().toISOString() };
+  cache.put('vote_results', JSON.stringify(out), 20);
+  return out;
 }
 
 /* =========================================================
