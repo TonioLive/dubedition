@@ -168,6 +168,7 @@ function doPost(e) {
       case 'vote':       return json_(vote_(body));
       case 'results':    return json_(results_());
       case 'votePin':    requireRole_(body.key, 'admin'); return json_({ ok: true, pin: votePin_() });
+      case 'voteDelete': requireRole_(body.key, 'admin'); return json_(voteDelete_(body.email, body.nombre));
       case 'pdf':        requireRole_(body.key, 'admin'); return json_(pdfFor_(body.id));
       case 'checkin':    requireRole_(body.key, 'staff'); return json_(checkin_(body.token, body.id, body.undo));
       case 'attendance': requireRole_(body.key, 'staff'); return json_(attendance_());
@@ -597,6 +598,22 @@ function vote_(b) {
   } finally { lock.releaseLock(); }
   CacheService.getScriptCache().remove('vote_results');
   return { ok: true, tipo: org ? 'organizacion' : 'publico', results: results_(true) };
+}
+
+/** Borra votos por correo (y nombre opcional). Solo admin: para limpiar pruebas o votos fraudulentos. */
+function voteDelete_(email, nombre) {
+  email = String(email || '').trim().toLowerCase(); if (!email) fail_('Falta el correo.');
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  let removed = 0;
+  try {
+    const sh = voteSheet_();
+    for (let i = sh.getLastRow(); i >= 2; i--) {
+      const r = sh.getRange(i, 1, 1, VOTE_HEADERS.length).getValues()[0];
+      if (String(r[2]).toLowerCase() === email && (!nombre || String(r[1]).trim().toLowerCase() === String(nombre).trim().toLowerCase())) { sh.deleteRow(i); removed++; }
+    }
+  } finally { lock.releaseLock(); }
+  CacheService.getScriptCache().remove('vote_results');
+  return { ok: true, removed };
 }
 
 /** Puntuación = 50 % cuota de votos de la organización + 50 % cuota del público.
