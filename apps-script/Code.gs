@@ -39,6 +39,7 @@ const CFG = {
   VOTE_SHEET: 'Votos',
   VOTE_MAX: 4,
   VOTE_ORG_EMAIL: 'info@dubedition.es',          // los votos con este correo (+ PIN de jurado) cuentan como organización
+  VOTE_START: '2026-11-21T09:00:00+01:00',       // apertura de la votación
   VOTE_DEADLINE: '2026-11-21T13:00:00+01:00',    // cierre de la votación (premios a las 13:30)
   MAP_IMG: 'https://dubedition.es/assets/mail/plano-expo-aspar.jpg',
   MAPS_URL: 'https://maps.app.goo.gl/pXrFuxaSXsFm1w6R7',
@@ -569,6 +570,7 @@ function acceptedIds_() {
 
 function vote_(b) {
   if (b.website) return { ok: true };                       // honeypot
+  if (Date.now() < new Date(CFG.VOTE_START).getTime()) fail_('La votación abre el sábado 21 a las 9:00. ¡Vuelve entonces!');
   if (Date.now() >= new Date(CFG.VOTE_DEADLINE).getTime()) fail_('La votación ya está cerrada. ¡Gracias por participar!');
   const nombre = String(b.nombre || '').trim().replace(/\s+/g, ' ').slice(0, 60);
   const email = String(b.email || '').trim().toLowerCase().slice(0, 120);
@@ -637,7 +639,7 @@ function results_(fresh) {
     return { id, pct: Math.round((wP * sp + wO * so) * 1000) / 10, publico: Math.round(sp * 1000) / 10, organizacion: Math.round(so * 1000) / 10, votos: (pub[id] || 0) + (org[id] || 0) };
   }).sort((a, b) => b.pct - a.pct || b.votos - a.votos);
   const out = { ok: true, ranking, votantes: { publico: pubVoters, organizacion: orgVoters },
-    cierre: CFG.VOTE_DEADLINE, cerrada: Date.now() >= new Date(CFG.VOTE_DEADLINE).getTime(), actualizado: new Date().toISOString() };
+    apertura: CFG.VOTE_START, cierre: CFG.VOTE_DEADLINE, abierta: Date.now() >= new Date(CFG.VOTE_START).getTime(), cerrada: Date.now() >= new Date(CFG.VOTE_DEADLINE).getTime(), actualizado: new Date().toISOString() };
   cache.put('vote_results', JSON.stringify(out), 20);
   return out;
 }

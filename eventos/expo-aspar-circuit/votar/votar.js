@@ -2,6 +2,7 @@
 (() => {
   const MAX = 4;
   const ORG_EMAIL = 'info@dubedition.es';
+  const START = new Date('2026-11-21T09:00:00+01:00').getTime();
   const DEADLINE = new Date('2026-11-21T13:00:00+01:00').getTime();
   const LS_KEY = 'dubVoteAspar';
   const $ = (s, r = document) => r.querySelector(s);
@@ -11,6 +12,7 @@
   let cars = [], byId = {}, picked = [], voted = null, rankTimer = null;
   try { voted = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) {}
   const closed = () => Date.now() >= DEADLINE;
+  const notOpen = () => Date.now() < START;
 
   /* ---------- Datos ---------- */
   fetch('coches.json?v=' + Date.now().toString().slice(0, -5))
@@ -55,19 +57,20 @@
   });
 
   function updateState() {
-    const locked = closed() || (voted && voted.tipo !== 'organizacion');
+    const locked = notOpen() || closed() || (voted && voted.tipo !== 'organizacion');
     document.querySelectorAll('.car').forEach((el) => {
       const on = picked.includes(el.dataset.id);
       el.classList.toggle('is-picked', on);
       const b = el.querySelector('.car-vote');
-      b.textContent = on ? '✓ Elegido' : 'Votar';
+      b.textContent = on ? '✓ Elegido' : (notOpen() ? 'Abre a las 9:00' : 'Votar');
       b.disabled = locked || (!on && picked.length >= MAX);
     });
-    const hint = $('#voteHint');
+    const hint = $('#voteHint'); hint.hidden = !!locked;
     hint.innerHTML = picked.length >= MAX ? '<b>Ya tienes tus 4 coches.</b> Pulsa <b>Enviar voto</b> para confirmar.' :
       `Toca <b>Votar</b> en los coches que más te gusten. Te quedan <b>${MAX - picked.length}</b>.`;
     const notice = $('#voteNotice');
-    if (closed()) { notice.hidden = false; notice.innerHTML = '<b>La votación está cerrada.</b> ¡Gracias por participar! Mira el ranking final en la pestaña <b>Ranking</b>.'; }
+    if (notOpen()) { notice.hidden = false; notice.innerHTML = '<b>La votación abre el sábado 21 de noviembre a las 9:00</b> y cierra a las 13:00. Mientras tanto, echa un vistazo a los coches y a sus Instagram.'; }
+    else if (closed()) { notice.hidden = false; notice.innerHTML = '<b>La votación está cerrada.</b> ¡Gracias por participar! Mira el ranking final en la pestaña <b>Ranking</b>.'; }
     else if (locked) { notice.hidden = false; notice.innerHTML = `<b>Ya has votado desde este móvil.</b> ¡Gracias, ${esc(voted.nombre || '')}! Sigue el ranking en directo.`; }
     else notice.hidden = true;
     // barra inferior
@@ -158,8 +161,11 @@
   function tick() {
     const left = DEADLINE - Date.now();
     vc.hidden = false;
+    const pre = Date.now() < START;
+    vc.querySelector('.vc-label').textContent = pre ? 'La votación abre en' : 'La votación cierra en';
+    if (pre && START - Date.now() <= 1000) setTimeout(updateState, 1100);
     if (left <= 0) { vc.classList.add('is-closed'); vc.querySelector('.vc-label').textContent = 'Votación cerrada'; updateState(); return; }
-    const s = Math.floor(left / 1000), v = { h: Math.floor(s / 3600), m: Math.floor((s % 3600) / 60), s: s % 60 };
+    const s = Math.floor((pre ? START - Date.now() : left) / 1000), v = { h: Math.floor(s / 3600), m: Math.floor((s % 3600) / 60), s: s % 60 };
     vc.querySelectorAll('[data-u]').forEach((el) => (el.textContent = String(v[el.dataset.u]).padStart(2, '0')));
     setTimeout(tick, 1000);
   }
