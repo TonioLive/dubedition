@@ -35,6 +35,9 @@ const CFG = {
   MAX_PHOTO_BYTES: 4 * 1024 * 1024,
   SEND_BATCH: 20,            // correos con PDF por llamada (evita el límite de 6 min)
   EXPO_SPOTS: 60,
+  MAP_IMG: 'https://dubedition.es/assets/mail/plano-expo-aspar.jpg',
+  MAPS_URL: 'https://maps.app.goo.gl/pXrFuxaSXsFm1w6R7',
+  ADDRESS: 'Polígono 28, Parcela 26 · 46610 Guadassuar (Valencia)',
   TOTAL_SIGNUPS_TEXT: 'más de 400 coches',   // texto del correo de agradecimiento a no seleccionados
   REG_DEADLINE: '2026-11-19T21:00:00+01:00',   // cierre de inscripciones (hora de Madrid)            // plazas de la expo (se menciona en el correo de no seleccionado)
   // Open Track Day del circuito (se reserva y se paga con Aspar Circuit, no con nosotros)
@@ -53,7 +56,7 @@ const STATUS = { PENDING: 'Pendiente', ACCEPTED: 'Aceptado', REJECTED: 'Rechazad
 const HEADERS = [
   'ID', 'Fecha inscripción', 'Estado', 'Email', 'Nombre', 'Apellido', 'Marca', 'Modelo',
   'Matrícula', 'Instagram', 'Descripción', 'Interés tandas', 'Fotos (IDs)', 'Carpeta fotos',
-  'Token QR', 'Gracias enviado', 'Respuesta enviada', 'Check-in', 'Notas', 'Info tandas enviada', 'Agradecimiento enviado'
+  'Token QR', 'Gracias enviado', 'Respuesta enviada', 'Check-in', 'Notas', 'Info tandas enviada', 'Agradecimiento enviado', 'Info día enviada'
 ];
 const COL = HEADERS.reduce((o, h, i) => (o[h] = i, o), {});
 
@@ -155,6 +158,7 @@ function doPost(e) {
       case 'sendReplies':requireRole_(body.key, 'admin'); return json_(sendReplies_());
       case 'resend':     requireRole_(body.key, 'admin'); return json_(resend_(body.id));
       case 'sendTandas': requireRole_(body.key, 'admin'); return json_(sendTandas_(body.id));
+      case 'sendDayInfo': requireRole_(body.key, 'admin'); return json_(sendDayInfo_(body.id));
       case 'sendRejectedThanks': requireRole_(body.key, 'admin'); return json_(sendRejectedThanks_());
       case 'pdf':        requireRole_(body.key, 'admin'); return json_(pdfFor_(body.id));
       case 'checkin':    requireRole_(body.key, 'staff'); return json_(checkin_(body.token, body.id, body.undo));
@@ -522,6 +526,105 @@ function sendRejectedThanksMail_(o) {
     { label: 'VER EL EVENTO', url: CFG.EVENT_URL }
   );
   mail_(o.email, 'Gracias por inscribirte · Te esperamos el sábado en Aspar Circuit', html);
+}
+
+/* =========================================================
+   CORREO "TODO SOBRE EL DÍA" (aceptados)
+   ========================================================= */
+function sendDayInfo_(id) {
+  checkSender_();
+  ensureHeaders_();
+  if (id) {
+    const r = findRow_(x => x[COL['ID']] === id) || fail_('Inscripción no encontrada.');
+    sendDayInfoMail_(rowObj_(r.values)); r.set('Info día enviada', new Date());
+    return { ok: true, sent: 1, remaining: 0, failed: [] };
+  }
+  const t0 = Date.now();
+  let sent = 0, remaining = 0; const failed = [];
+  eachRow_(r => {
+    const o = rowObj_(r.values);
+    if (o.estado !== STATUS.ACCEPTED || r.values[COL['Info día enviada']]) return;
+    if (sent >= CFG.SEND_BATCH || Date.now() - t0 > 4.5 * 60 * 1000) { remaining++; return; }
+    try { sendDayInfoMail_(o); r.set('Info día enviada', new Date()); sent++; }
+    catch (e) { failed.push(o.id + ': ' + e.message); }
+  });
+  return { ok: true, sent, remaining, failed };
+}
+
+function sendDayInfoMail_(o) {
+  const H = (t, sub) => `<h2 style="margin:30px 0 4px;color:#111111;font-size:19px;line-height:1.25;text-transform:uppercase;letter-spacing:.5px">${t}</h2>${sub ? `<p style="margin:0 0 12px;color:#777777;font-size:13px">${sub}</p>` : ''}`;
+  const tag = (txt, bg, fg) => `<span style="display:inline-block;background:${bg};color:${fg || '#111111'};font-size:10px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:999px;white-space:nowrap">${txt}</span>`;
+  const EXPO = tag('Expo', '#ffcf3d'), TD = tag('Track day', '#ff7a1a', '#ffffff'), REST = tag('Restaurante', '#e9e9e9');
+  const step = (h, title, desc, t, hi) => `<tr>
+      <td style="padding:10px 12px;border-bottom:1px solid #eeeeee;${hi ? 'background:#fff8e1;' : ''}width:78px;vertical-align:top"><b style="font-size:18px;color:#111111">${h}</b></td>
+      <td style="padding:10px 12px 10px 0;border-bottom:1px solid #eeeeee;${hi ? 'background:#fff8e1;' : ''}vertical-align:top"><b style="color:#111111;font-size:14px">${title}</b><br><span style="color:#666666;font-size:13px">${desc}</span></td>
+      <td style="padding:10px 12px 10px 0;border-bottom:1px solid #eeeeee;${hi ? 'background:#fff8e1;' : ''}vertical-align:top;text-align:right">${t}</td></tr>`;
+  const zone = (color, name, desc) => `<tr><td style="padding:5px 10px 5px 0;vertical-align:top;width:18px"><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:${color};border:1px solid rgba(0,0,0,.12)"></span></td><td style="padding:4px 0;font-size:14px;color:#333333"><b style="color:#111111">${name}</b> &middot; ${desc}</td></tr>`;
+  const box = (inner, bg) => `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:10px 0;background:${bg || '#f6f6f6'};border:1px solid #e6e6e6;border-radius:14px"><tr><td style="padding:16px 18px;font-size:14px;line-height:1.6;color:#333333">${inner}</td></tr></table>`;
+
+  const html = mailLayout_(
+    'Mañana nos vemos en el Aspar Circuit',
+    `<p>Hola ${esc_(o.nombre)},</p>
+     <p>¡Ya está aquí! Mañana tu <b>${esc_(o.marca)} ${esc_(o.modelo)}</b> forma parte de la <b>${CFG.EVENT_NAME}</b>.
+     Te dejamos todo lo que necesitas saber para que el día salga redondo.</p>
+
+     ${box(`<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%"><tr>
+       <td style="vertical-align:top;font-size:14px;color:#333333">
+         <span style="color:#888888;font-size:11px;letter-spacing:1px;text-transform:uppercase">Tu acreditación</span><br>
+         <b style="color:#111111;font-size:17px">${esc_(o.nombre)} ${esc_(o.apellido)}</b><br>
+         ${esc_(o.marca)} ${esc_(o.modelo)} &middot; <b style="color:#111111">${esc_(o.matricula)}</b> &middot; ${esc_(o.id)}
+       </td>
+       <td style="vertical-align:top;text-align:right;white-space:nowrap"><span style="display:inline-block;background:#111111;color:#ffffff;font-size:11px;font-weight:bold;letter-spacing:1px;padding:6px 12px;border-radius:999px">EXPOSITOR</span></td>
+     </tr></table>
+     <p style="margin:10px 0 0">Te adjuntamos de nuevo tu <b>acreditación en PDF con el QR</b>. Llévala <b>impresa y visible en el salpicadero</b>
+     (o en el móvil): el staff la escaneará en la entrada.</p>`, '#fff8e1')}
+
+     ${H('Llegada de los coches de la expo', 'Respeta la franja para que podamos colocar todos los coches a tiempo')}
+     ${box(`<b style="font-size:26px;color:#111111">${CFG.EVENT_ARRIVAL}</b><br>
+       Entra por la <b>ENTRADA</b> del recinto, enseña tu QR y sigue las indicaciones del staff hasta la <b>zona Expo</b>.
+       Ven con el coche limpio y listo para exponer: la entrega de premios es a las <b>${CFG.EVENT_AWARDS}</b>.`)}
+
+     ${H('Cómo llegar')}
+     <p style="margin:6px 0">1. Por la <b>CV-525</b> (Alginet &ndash; Algemesí) hasta la <b>rotonda de la CV-522</b>.<br>
+     2. Sigue el camino que <b>bordea el circuito</b>.<br>
+     3. Entra por la <b>ENTRADA</b> (en rojo en el plano).</p>
+     <p style="margin:6px 0;color:#666666;font-size:13px">${CFG.ADDRESS}</p>
+     <p style="margin:12px 0 4px"><a href="${CFG.MAPS_URL}" style="display:inline-block;background:#ffffff;color:#111111;border:2px solid #111111;text-decoration:none;font-weight:bold;font-size:12px;letter-spacing:1.2px;padding:11px 20px;border-radius:999px">ABRIR EN GOOGLE MAPS</a></p>
+
+     ${H('Plano del recinto')}
+     <a href="${CFG.MAP_IMG}"><img src="${CFG.MAP_IMG}" alt="Plano del recinto: entrada, zona expo, parkings y stands" width="540" style="display:block;width:100%;max-width:540px;height:auto;border-radius:14px;border:1px solid #e6e6e6;margin:10px 0"></a>
+     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:6px 0 0">
+       ${zone('#ff3b30', 'Entrada', 'acceso único para todos los vehículos')}
+       ${zone('#ffcc00', 'Expo', 'aquí colocamos tu coche')}
+       ${zone('#34c759', 'Parking tandas', 'solo para participantes del track day')}
+       ${zone('#f2f2f2', 'Parking público', 'para tus acompañantes y visitantes')}
+       ${zone('#af52de', 'Stands', 'junto al edificio del circuito')}
+       ${zone('#0a84ff', 'Parking PMR', 'personas con movilidad reducida')}
+     </table>
+
+     ${H('Horario del sábado', 'Expo Dub Edition + Open Track Day de Aspar Circuit')}
+     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border:1px solid #e6e6e6;border-radius:14px;border-collapse:separate;overflow:hidden">
+       ${step('8:00', 'Venta de tickets e inscripciones', 'Open Track Day, en recepción del circuito', TD)}
+       ${step('8:45', 'Verificaciones técnicas y briefing', 'Para los pilotos del track day', TD)}
+       ${step('9:00', 'Arranca todo: expo + pista', 'Entrada de coches a la expo de 9:00 a 10:00 e inicio del track day', EXPO, true)}
+       ${step('9:00', 'Almuerzos con vistas a la pista', 'Restaurante y terraza del circuito, hasta las 11:30', REST)}
+       ${step('13:00', 'Parada para comer', 'Pausa de la actividad en pista', TD)}
+       ${step('13:30', 'Entrega de premios', 'A los mejores coches de la expo', EXPO, true)}
+       ${step('14:00', 'Sesión de tarde', 'Vuelven las tandas a la pista', TD)}
+       ${step('17:00', 'Fin de la actividad', 'Cierre del Open Track Day', TD)}
+     </table>
+
+     ${H('Bueno saber')}
+     <ul style="margin:8px 0 0;padding-left:18px">
+       <li><b>Entrada gratis para el público:</b> trae a tus amigos y familia. Ellos aparcan en el parking público.</li>
+       <li><b>¿Quieres rodar?</b> El Open Track Day se reserva con Aspar Circuit en <a href="${CFG.TRACKDAY_INFO_URL}" style="color:#111111">su web</a> (${CFG.TRACKDAY_PRICE}). Casco, gancho de remolque y seguro obligatorios (el seguro se puede contratar allí por 15 €).</li>
+       <li><b>Restaurante:</b> almuerzos de 9:00 a 11:30 y comidas de 12:00 a 15:30, con terraza sobre la pista.</li>
+       <li><b>Comparte el día:</b> sube tus fotos y stories etiquetando a <a href="${CFG.INSTAGRAM}" style="color:#111111">@dubeditionvlc</a> con #seguimosenlonuestro.</li>
+     </ul>
+     <p style="margin-top:22px">Si tienes cualquier duda, responde a este correo. ¡Nos vemos mañana!</p>`,
+    { label: 'VER EL EVENTO', url: CFG.EVENT_URL }
+  );
+  mail_(o.email, 'Mañana nos vemos · Todo sobre el día de la ' + CFG.EVENT_NAME, html, { attachments: [buildPdf_(o)] });
 }
 
 function sendTandasMail_(o) {
