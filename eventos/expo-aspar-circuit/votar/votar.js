@@ -23,8 +23,11 @@
   /* ---------- Datos ---------- */
   fetch('coches.json?v=' + Date.now().toString().slice(0, -5))
     .then((r) => r.json())
-    .then((d) => { cars = d.coches; cars.forEach((c) => (byId[c.id] = c)); renderGrid(); updateState(); })
+    .then((d) => { cars = shuffle(d.coches.slice()); cars.forEach((c) => (byId[c.id] = c)); renderGrid(); updateState(); })
     .catch(() => { $('#carGrid').innerHTML = '<p class="muted">No se han podido cargar los coches. Recarga la página.</p>'; });
+
+  /* Orden aleatorio en cada visita: ningún coche sale siempre el primero */
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
   /* ---------- Rejilla ---------- */
   function carCard(c) {
