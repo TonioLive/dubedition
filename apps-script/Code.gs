@@ -39,7 +39,8 @@ const CFG = {
   VOTE_SHEET: 'Votos',
   VOTE_MAX: 4,
   VOTE_ORG_EMAIL: 'info@dubedition.es',          // los votos con este correo (+ PIN de jurado) cuentan como organización
-  VOTE_START: '2026-11-21T09:00:00+01:00',       // apertura de la votación
+  VOTE_START: '2026-11-21T09:00:00+01:00',
+  VOTE_GEO: { lat: 39.2261241, lng: -0.4674169, radius: 500, slack: 100 }, // Aspar Circuit: solo se vota estando a ≤500 m (+ hasta 100 m de margen GPS)       // apertura de la votación
   VOTE_DEADLINE: '2026-11-21T13:00:00+01:00',    // cierre de la votación (premios a las 13:30)
   MAP_IMG: 'https://dubedition.es/assets/mail/plano-expo-aspar.jpg',
   MAPS_URL: 'https://maps.app.goo.gl/pXrFuxaSXsFm1w6R7',
@@ -541,7 +542,7 @@ function sendRejectedThanksMail_(o) {
 /* =========================================================
    VOTACIÓN · Vota a los mejores coches
    ========================================================= */
-const VOTE_HEADERS = ['Fecha', 'Nombre', 'Email', 'Tipo', 'Coches', 'Dispositivo'];
+const VOTE_HEADERS = ['Fecha', 'Nombre', 'Email', 'Tipo', 'Coches', 'Dispositivo', 'Latitud', 'Longitud', 'Distancia (m)', 'Precisión GPS (m)'];
 
 function voteSheet_() {
   const ss = SpreadsheetApp.openById(CFG.SHEET_ID);
@@ -550,6 +551,8 @@ function voteSheet_() {
     sh = ss.insertSheet(CFG.VOTE_SHEET);
     sh.getRange(1, 1, 1, VOTE_HEADERS.length).setValues([VOTE_HEADERS]).setFontWeight('bold').setBackground('#000000').setFontColor('#ffffff');
     sh.setFrozenRows(1);
+  } else if (sh.getLastColumn() < VOTE_HEADERS.length) {
+    sh.getRange(1, 1, 1, VOTE_HEADERS.length).setValues([VOTE_HEADERS]).setFontWeight('bold').setBackground('#000000').setFontColor('#ffffff');
   }
   return sh;
 }
@@ -586,6 +589,16 @@ function vote_(b) {
   const org = email === CFG.VOTE_ORG_EMAIL;
   if (org && String(b.pin || '').trim() !== votePin_()) fail_('PIN de organización incorrecto.');
 
+  // Ubicación: el público tiene que estar en Aspar Circuit (el jurado con PIN queda exento)
+  const lat = Number(b.lat), lng = Number(b.lng), acc = Math.max(0, Number(b.acc) || 0);
+  const hasGeo = isFinite(lat) && isFinite(lng) && b.lat !== undefined && b.lat !== null && b.lat !== '';
+  const dist = hasGeo ? Math.round(distM_(lat, lng, CFG.VOTE_GEO.lat, CFG.VOTE_GEO.lng)) : '';
+  if (!org) {
+    if (!hasGeo) fail_('Necesitamos tu ubicación para comprobar que estás en Aspar Circuit. Activa la ubicación y vuelve a intentarlo.');
+    if (dist - Math.min(acc, CFG.VOTE_GEO.slack) > CFG.VOTE_GEO.radius)
+      fail_('Solo se puede votar desde Aspar Circuit. Ahora mismo estás a ' + (dist >= 1000 ? (dist / 1000).toFixed(1).replace('.', ',') + ' km' : dist + ' m') + '.');
+  }
+
   const lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
     const sh = voteSheet_();
@@ -596,10 +609,19 @@ function vote_(b) {
       ? (String(r[2]).toLowerCase() === email && norm(r[1]) === norm(nombre))
       : String(r[2]).toLowerCase() === email);
     if (dup) fail_(org ? 'Este organizador ya ha votado.' : 'Este correo ya ha votado. Solo se puede votar una vez.');
-    sh.appendRow([new Date(), nombre, email, org ? 'Organización' : 'Público', cars.join(','), String(b.device || '').slice(0, 40)]);
+    sh.appendRow([new Date(), nombre, email, org ? 'Organización' : 'Público', cars.join(','), String(b.device || '').slice(0, 40),
+      hasGeo ? lat : '', hasGeo ? lng : '', dist, hasGeo ? Math.round(acc) : '']);
   } finally { lock.releaseLock(); }
   CacheService.getScriptCache().remove('vote_results');
   return { ok: true, tipo: org ? 'organizacion' : 'publico', results: results_(true) };
+}
+
+/** Distancia en metros entre dos coordenadas (Haversine). */
+function distM_(lat1, lng1, lat2, lng2) {
+  const R = 6371000, r = Math.PI / 180;
+  const dLat = (lat2 - lat1) * r, dLng = (lng2 - lng1) * r;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
 }
 
 /** Borra votos por correo (y nombre opcional). Solo admin: para limpiar pruebas o votos fraudulentos. */

@@ -9,6 +9,12 @@
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const photo = (f) => 'fotos/' + f;
 
+  const getPos = () => new Promise((ok, ko) => {
+    if (!navigator.geolocation) return ko(new Error('Tu navegador no permite compartir la ubicación. Prueba con Chrome o Safari.'));
+    navigator.geolocation.getCurrentPosition((p) => ok(p.coords), (e) => ko(new Error(e.code === 1
+      ? 'Necesitamos tu ubicación para comprobar que estás en Aspar Circuit. Permite el acceso a la ubicación en tu navegador y vuelve a intentarlo.'
+      : 'No hemos podido obtener tu ubicación. Activa el GPS y vuelve a intentarlo.')), { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+  });
   let cars = [], byId = {}, picked = [], voted = null, rankTimer = null;
   try { voted = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) {}
   const closed = () => Date.now() >= DEADLINE;
@@ -103,10 +109,14 @@
     const nombre = $('#vNombre').value.trim(), email = $('#vEmail').value.trim();
     if (nombre.length < 2) { msg.className = 'vm-msg error'; msg.textContent = 'Escribe tu nombre.'; return; }
     if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) { msg.className = 'vm-msg error'; msg.textContent = 'Revisa tu correo electrónico.'; return; }
-    btn.disabled = true; msg.className = 'vm-msg'; msg.textContent = 'Enviando tu voto…';
+    btn.disabled = true; msg.className = 'vm-msg';
     try {
+      const isOrg = email.toLowerCase() === ORG_EMAIL;
+      let geo = {};
+      if (!isOrg) { msg.textContent = '📍 Comprobando tu ubicación…'; const c = await getPos(); geo = { lat: c.latitude, lng: c.longitude, acc: Math.round(c.accuracy) }; }
+      msg.textContent = 'Enviando tu voto…';
       let device = ''; try { device = localStorage.getItem('dubDev') || (Math.random().toString(36).slice(2) + Date.now().toString(36)); localStorage.setItem('dubDev', device); } catch (er) {}
-      const r = await window.dubApi('vote', { nombre, email, cars: picked, pin: $('#vPin').value, website: $('#vWeb').value, device });
+      const r = await window.dubApi('vote', Object.assign({ nombre, email, cars: picked, pin: $('#vPin').value, website: $('#vWeb').value, device }, geo));
       voted = { nombre, tipo: r.tipo, cars: picked.slice(), at: Date.now() };
       try { if (r.tipo !== 'organizacion') localStorage.setItem(LS_KEY, JSON.stringify(voted)); } catch (er) {}
       msg.className = 'vm-msg ok'; msg.textContent = r.tipo === 'organizacion' ? '¡Voto de organización registrado!' : '¡Voto registrado! Gracias por participar.';
