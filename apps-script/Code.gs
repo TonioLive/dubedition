@@ -35,6 +35,7 @@ const CFG = {
   MAX_PHOTO_BYTES: 4 * 1024 * 1024,
   SEND_BATCH: 20,            // correos con PDF por llamada (evita el límite de 6 min)
   EXPO_SPOTS: 60,
+  TOTAL_SIGNUPS_TEXT: 'más de 400 coches',   // texto del correo de agradecimiento a no seleccionados
   REG_DEADLINE: '2026-11-19T21:00:00+01:00',   // cierre de inscripciones (hora de Madrid)            // plazas de la expo (se menciona en el correo de no seleccionado)
   // Open Track Day del circuito (se reserva y se paga con Aspar Circuit, no con nosotros)
   TRACKDAY_BOOK_URL: 'https://booking.prod.pixelcom.io/event/253B12041CF03725783D697150F940DB/register',
@@ -52,7 +53,7 @@ const STATUS = { PENDING: 'Pendiente', ACCEPTED: 'Aceptado', REJECTED: 'Rechazad
 const HEADERS = [
   'ID', 'Fecha inscripción', 'Estado', 'Email', 'Nombre', 'Apellido', 'Marca', 'Modelo',
   'Matrícula', 'Instagram', 'Descripción', 'Interés tandas', 'Fotos (IDs)', 'Carpeta fotos',
-  'Token QR', 'Gracias enviado', 'Respuesta enviada', 'Check-in', 'Notas', 'Info tandas enviada'
+  'Token QR', 'Gracias enviado', 'Respuesta enviada', 'Check-in', 'Notas', 'Info tandas enviada', 'Agradecimiento enviado'
 ];
 const COL = HEADERS.reduce((o, h, i) => (o[h] = i, o), {});
 
@@ -154,6 +155,7 @@ function doPost(e) {
       case 'sendReplies':requireRole_(body.key, 'admin'); return json_(sendReplies_());
       case 'resend':     requireRole_(body.key, 'admin'); return json_(resend_(body.id));
       case 'sendTandas': requireRole_(body.key, 'admin'); return json_(sendTandas_(body.id));
+      case 'sendRejectedThanks': requireRole_(body.key, 'admin'); return json_(sendRejectedThanks_());
       case 'pdf':        requireRole_(body.key, 'admin'); return json_(pdfFor_(body.id));
       case 'checkin':    requireRole_(body.key, 'staff'); return json_(checkin_(body.token, body.id, body.undo));
       case 'attendance': requireRole_(body.key, 'staff'); return json_(attendance_());
@@ -349,6 +351,22 @@ function sendTandas_(id) {
   return { ok: true, sent, remaining };
 }
 
+/** Agradecimiento + invitación a todos los Rechazados que aún no lo han recibido (una sola vez por persona). */
+function sendRejectedThanks_() {
+  checkSender_();
+  ensureHeaders_();
+  const t0 = Date.now();
+  let sent = 0, remaining = 0, failed = [];
+  eachRow_(r => {
+    const o = rowObj_(r.values);
+    if (o.estado !== STATUS.REJECTED || r.values[COL['Agradecimiento enviado']]) return;
+    if (sent >= 40 || Date.now() - t0 > 4.5 * 60 * 1000) { remaining++; return; }
+    try { sendRejectedThanksMail_(o); r.set('Agradecimiento enviado', new Date()); sent++; }
+    catch (e) { failed.push(o.id + ': ' + e.message); }
+  });
+  return { ok: true, sent, remaining, failed };
+}
+
 /** Añade a la hoja las columnas nuevas si aún no están (no mueve las existentes). */
 function ensureHeaders_() {
   const sh = sheet_();
@@ -472,6 +490,38 @@ function sendRejectedMail_(o) {
     { label: 'VER EL EVENTO', url: CFG.EVENT_URL }
   );
   mail_(o.email, 'Respuesta a tu inscripción · ' + CFG.EVENT_NAME, html);
+}
+
+/** Segundo aviso a los no seleccionados: agradecimiento + invitación al evento (se envía desde el panel). */
+function sendRejectedThanksMail_(o) {
+  const row = (k, v) => `<tr><td style="padding:7px 0;color:#888888;font-size:13px;width:92px;vertical-align:top"><b style="color:#111111;font-size:15px">${k}</b></td><td style="padding:7px 0;color:#333333;font-size:15px">${v}</td></tr>`;
+  const html = mailLayout_(
+    'Gracias por inscribirte',
+    `<p>Hola ${esc_(o.nombre)},</p>
+     <p>Queremos darte las gracias por inscribir tu <b>${esc_(o.marca)} ${esc_(o.modelo)}</b> en la <b>${CFG.EVENT_NAME}</b>.</p>
+     <p>Habéis sido <b>${CFG.TOTAL_SIGNUPS_TEXT}</b> y solo teníamos <b>${CFG.EXPO_SPOTS} plazas</b> para la expo, así que es una pena
+     no haberos podido coger a todos. De verdad, gracias por el apoyo: no esperábamos una respuesta así.</p>
+     <p><b>Igualmente, te invitamos a pasar un día genial con nosotros en el Aspar Circuit.</b> La entrada para el público es
+     <b>gratis</b>: ven con tu coche, tus amigos o tu familia a ver la expo, el track day y la entrega de premios.</p>
+     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0;width:100%;background:#f6f6f6;border:1px solid #e6e6e6;border-radius:14px">
+       <tr><td style="padding:14px 20px">
+         <p style="margin:0 0 6px;color:#888888;font-size:12px;text-transform:uppercase;letter-spacing:1px">${CFG.EVENT_DATE} · ${CFG.EVENT_PLACE}</p>
+         <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%">
+           ${row('9:00', 'Arranca la expo de Dub Edition y el Open Track Day')}
+           ${row('9:00', 'Almuerzos en el restaurante del circuito, con vistas a la pista (hasta las 11:30)')}
+           ${row('13:30', 'Entrega de premios a los mejores coches de la expo')}
+           ${row('14:00', 'Sesión de tarde: vuelven las tandas a pista')}
+           ${row('17:00', 'Fin de la actividad')}
+         </table>
+       </td></tr>
+     </table>
+     <p>¿Te apetece rodar? El <b>Open Track Day</b> se reserva directamente con Aspar Circuit en
+     <a href="${CFG.TRACKDAY_INFO_URL}" style="color:#111111">su web</a> (${CFG.TRACKDAY_PRICE}).</p>
+     <p>Seguiremos organizando KDDs, rutas y eventos, así que estate atento a nuestro Instagram: habrá más ocasiones de ver tu coche con nosotros.</p>
+     <p>¡Nos vemos el sábado!</p>`,
+    { label: 'VER EL EVENTO', url: CFG.EVENT_URL }
+  );
+  mail_(o.email, 'Gracias por inscribirte · Te esperamos el sábado en Aspar Circuit', html);
 }
 
 function sendTandasMail_(o) {
