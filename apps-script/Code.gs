@@ -554,11 +554,11 @@ function sendDayInfo_(id) {
 function sendDayInfoMail_(o) {
   const H = (t, sub) => `<h2 style="margin:30px 0 4px;color:#111111;font-size:19px;line-height:1.25;text-transform:uppercase;letter-spacing:.5px">${t}</h2>${sub ? `<p style="margin:0 0 12px;color:#777777;font-size:13px">${sub}</p>` : ''}`;
   const tag = (txt, bg, fg) => `<span style="display:inline-block;background:${bg};color:${fg || '#111111'};font-size:10px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:999px;white-space:nowrap">${txt}</span>`;
-  const EXPO = tag('Expo', '#ffcf3d'), TD = tag('Track day', '#ff7a1a', '#ffffff'), REST = tag('Restaurante', '#e9e9e9');
-  const step = (h, title, desc, t, hi) => `<tr>
-      <td style="padding:10px 12px;border-bottom:1px solid #eeeeee;${hi ? 'background:#fff8e1;' : ''}width:78px;vertical-align:top"><b style="font-size:18px;color:#111111">${h}</b></td>
-      <td style="padding:10px 12px 10px 0;border-bottom:1px solid #eeeeee;${hi ? 'background:#fff8e1;' : ''}vertical-align:top"><b style="color:#111111;font-size:14px">${title}</b><br><span style="color:#666666;font-size:13px">${desc}</span></td>
-      <td style="padding:10px 12px 10px 0;border-bottom:1px solid #eeeeee;${hi ? 'background:#fff8e1;' : ''}vertical-align:top;text-align:right">${t}</td></tr>`;
+    const step = (h, title, desc, c, hi) => `<tr>
+      <td style="padding:6px 6px 6px 10px;border-bottom:1px solid #eeeeee;border-left:5px solid ${c};${hi ? 'background:#fff8e1;' : ''}width:46px;vertical-align:top;white-space:nowrap;line-height:19px"><b style="font-size:14px;color:#111111">${h}</b></td>
+      <td style="padding:6px 10px 6px 4px;border-bottom:1px solid #eeeeee;${hi ? 'background:#fff8e1;' : ''}vertical-align:top;line-height:19px"><b style="color:#111111;font-size:13.5px">${title}</b>${desc ? `<span style="color:#777777;font-size:12.5px"> &middot; ${desc}</span>` : ''}</td></tr>`;
+  const dot = (c, t) => `<span style="display:inline-block;margin:0 12px 4px 0;font-size:12px;color:#555555;white-space:nowrap"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${c};vertical-align:-1px;margin-right:5px"></span>${t}</span>`;
+  const CE = '#ffcf3d', CT = '#ff7a1a', CR = '#bdbdbd';
   const zone = (color, name, desc) => `<tr><td style="padding:5px 10px 5px 0;vertical-align:top;width:18px"><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:${color};border:1px solid rgba(0,0,0,.12)"></span></td><td style="padding:4px 0;font-size:14px;color:#333333"><b style="color:#111111">${name}</b> &middot; ${desc}</td></tr>`;
   const box = (inner, bg) => `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:10px 0;background:${bg || '#f6f6f6'};border:1px solid #e6e6e6;border-radius:14px"><tr><td style="padding:16px 18px;font-size:14px;line-height:1.6;color:#333333">${inner}</td></tr></table>`;
 
@@ -602,16 +602,17 @@ function sendDayInfoMail_(o) {
        ${zone('#0a84ff', 'Parking PMR', 'personas con movilidad reducida')}
      </table>
 
-     ${H('Horario del sábado', 'Expo Dub Edition + Open Track Day de Aspar Circuit')}
-     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border:1px solid #e6e6e6;border-radius:14px;border-collapse:separate;overflow:hidden">
-       ${step('8:00', 'Venta de tickets e inscripciones', 'Open Track Day, en recepción del circuito', TD)}
-       ${step('8:45', 'Verificaciones técnicas y briefing', 'Para los pilotos del track day', TD)}
-       ${step('9:00', 'Arranca todo: expo + pista', 'Entrada de coches a la expo de 9:00 a 10:00 e inicio del track day', EXPO, true)}
-       ${step('9:00', 'Almuerzos con vistas a la pista', 'Restaurante y terraza del circuito, hasta las 11:30', REST)}
-       ${step('13:00', 'Parada para comer', 'Pausa de la actividad en pista', TD)}
-       ${step('13:30', 'Entrega de premios', 'A los mejores coches de la expo', EXPO, true)}
-       ${step('14:00', 'Sesión de tarde', 'Vuelven las tandas a la pista', TD)}
-       ${step('17:00', 'Fin de la actividad', 'Cierre del Open Track Day', TD)}
+     ${H('Horario del sábado')}
+     <p style="margin:0 0 6px">${dot(CE, 'Expo')}${dot(CT, 'Track day')}${dot(CR, 'Restaurante')}</p>
+     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border:1px solid #e6e6e6;border-radius:12px;border-collapse:separate;overflow:hidden">
+       ${step('8:00', 'Tickets del track day', '', CT)}
+       ${step('8:45', 'Verificaciones y briefing', '', CT)}
+       ${step('9:00', 'Expo + track day', 'coches de 9 a 10 h', CE, true)}
+       ${step('9:00', 'Almuerzos', 'hasta las 11:30', CR)}
+       ${step('13:00', 'Parada para comer', '', CT)}
+       ${step('13:30', 'Entrega de premios', '', CE, true)}
+       ${step('14:00', 'Sesión de tarde', '', CT)}
+       ${step('17:00', 'Fin de la actividad', '', CT)}
      </table>
 
      ${H('Bueno saber')}
