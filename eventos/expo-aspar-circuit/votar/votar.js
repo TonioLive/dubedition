@@ -146,7 +146,10 @@
 
   /* ---------- Ranking ---------- */
   async function loadRanking() {
-    try { renderRanking(await window.dubApi('results', {})); }
+    try {
+      if (emails) { try { await loadEmails(sessionStorage.getItem('dubVotePin') || ''); } catch (er) {} }
+      renderRanking(await window.dubApi('results', {}));
+    }
     catch (err) { $('#rankMeta').textContent = 'No se ha podido cargar el ranking. Lo reintentamos en unos segundos.'; }
   }
   function renderRanking(d) {
@@ -162,7 +165,9 @@
       const scale = list[0].pct ? 100 / list[0].pct : 1;
       const np = r.nombres || [], nj = r.jurado || [];
       const total = r.votos || (np.length + nj.length);
-      const chips = (arr, cls) => arr.map((n) => `<span class="vchip ${cls}">${esc(n)}</span>`).join('');
+      const chips = (arr, cls) => arr.map((n, k) => cls === 'p'
+        ? `<button type="button" class="vchip p" data-car="${esc(r.id)}" data-k="${k}" data-n="${esc(n)}">${esc(n)}${shown.has(r.id + '|' + k) && emailFor(r.id, k, n) ? `<em>${esc(emailFor(r.id, k, n))}</em>` : ''}</button>`
+        : `<span class="vchip ${cls}">${esc(n)}</span>`).join('');
       return `<li class="rank-item ${i < 3 ? 'p' + (i + 1) : ''}${openId === r.id ? ' open' : ''}" data-rid="${esc(r.id)}" tabindex="0" role="button" aria-expanded="${openId === r.id}">
         <span class="rank-pos">${i + 1}</span>
         ${c.fotos[0] ? `<img src="${photo(c.fotos[0])}" alt="" loading="lazy">` : '<span></span>'}
@@ -177,7 +182,34 @@
       </li>`;
     }).join('');
   }
-  $('#rankList').addEventListener('click', (e) => {
+  /* Correos del público: solo para la organización (PIN del jurado) */
+  let emails = null; const shown = new Set();
+  function emailFor(id, k, n) {
+    const l = emails && emails[id]; if (!l) return '';
+    const hit = l[k] && l[k].n === n ? l[k] : l.find((x) => x.n === n);
+    return hit ? hit.e : '';
+  }
+  async function loadEmails(pin) {
+    const r = await window.dubApi('voteEmails', { pin });
+    emails = r.coches; try { sessionStorage.setItem('dubVotePin', pin); } catch (er) {}
+  }
+  $('#rankList').addEventListener('click', async (e) => {
+    const chip = e.target.closest('.vchip.p');
+    if (chip) {
+      e.stopPropagation();
+      if (!emails) {
+        let pin = ''; try { pin = sessionStorage.getItem('dubVotePin') || ''; } catch (er) {}
+        if (!pin) pin = (window.prompt('Solo organización: introduce el PIN del jurado para ver los correos') || '').trim();
+        if (!pin) return;
+        try { await loadEmails(pin); } catch (err) { try { sessionStorage.removeItem('dubVotePin'); } catch (er) {} alert(err.message || 'PIN incorrecto'); return; }
+      }
+      const key = chip.dataset.car + '|' + chip.dataset.k;
+      if (shown.has(key)) shown.delete(key); else shown.add(key);
+      const em = chip.querySelector('em');
+      if (em) em.remove();
+      else { const v = emailFor(chip.dataset.car, +chip.dataset.k, chip.dataset.n); if (v) { const x = document.createElement('em'); x.textContent = v; chip.appendChild(x); } else shown.delete(key); }
+      return;
+    }
     const li = e.target.closest('.rank-item[data-rid]'); if (!li) return;
     const id = li.dataset.rid;
     openId = openId === id ? null : id;

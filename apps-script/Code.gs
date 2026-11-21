@@ -170,6 +170,7 @@ function doPost(e) {
       case 'vote':       return json_(vote_(body));
       case 'results':    return json_(results_());
       case 'votePin':    requireRole_(body.key, 'admin'); return json_({ ok: true, pin: votePin_() });
+      case 'voteEmails': return json_(voteEmails_(body));
       case 'voteDelete': requireRole_(body.key, 'admin'); return json_(voteDelete_(body.email, body.nombre));
       case 'pdf':        requireRole_(body.key, 'admin'); return json_(pdfFor_(body.id));
       case 'checkin':    requireRole_(body.key, 'staff'); return json_(checkin_(body.token, body.id, body.undo));
@@ -614,6 +615,20 @@ function vote_(b) {
   } finally { lock.releaseLock(); }
   CacheService.getScriptCache().remove('vote_results');
   return { ok: true, tipo: org ? 'organizacion' : 'publico', results: results_(true) };
+}
+
+/** Correos de los votantes del público por coche. Solo organización (PIN del jurado o clave admin). */
+function voteEmails_(b) {
+  const pinOk = String(b.pin || '').trim() === votePin_();
+  if (!pinOk) requireRole_(b.key, 'admin');
+  const sh = voteSheet_(); const last = sh.getLastRow();
+  const rows = last > 1 ? sh.getRange(2, 1, last - 1, VOTE_HEADERS.length).getValues() : [];
+  const out = {};
+  rows.forEach(r => {
+    if (r[3] === 'Organización') return;
+    String(r[4] || '').split(',').filter(Boolean).forEach(id => (out[id] = out[id] || []).push({ n: String(r[1] || '').trim().slice(0, 40), e: String(r[2] || '') }));
+  });
+  return { ok: true, coches: out };
 }
 
 /** Distancia en metros entre dos coordenadas (Haversine). */
