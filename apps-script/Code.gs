@@ -679,7 +679,7 @@ function results_(fresh) {
     const sp = pubTot ? (pub[id] || 0) / pubTot : 0, so = orgTot ? (org[id] || 0) / orgTot : 0;
     return { id, pct: Math.round((wP * sp + wO * so) * 1000) / 10, publico: Math.round(sp * 1000) / 10, organizacion: Math.round(so * 1000) / 10, votos: (pub[id] || 0) + (org[id] || 0),
       votosPublico: pub[id] || 0, votosOrganizacion: org[id] || 0,
-      nombres: (names[id] || {}).p || [], jurado: (names[id] || {}).o || [] };
+      nombres: (names[id] || {}).p || [], jurado: ((names[id] || {}).o || []).map(() => '') }; // nombres del jurado ocultos
   }).sort((a, b) => b.pct - a.pct || b.votos - a.votos);
   const out = { ok: true, ranking, votantes: { publico: pubVoters, organizacion: orgVoters },
     apertura: CFG.VOTE_START, cierre: CFG.VOTE_DEADLINE, abierta: Date.now() >= new Date(CFG.VOTE_START).getTime(), cerrada: Date.now() >= new Date(CFG.VOTE_DEADLINE).getTime(), actualizado: new Date().toISOString() };

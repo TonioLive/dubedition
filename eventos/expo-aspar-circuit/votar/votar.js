@@ -177,7 +177,6 @@
         <div class="rank-voters">
           <p><b>${total} ${total === 1 ? 'persona ha' : 'personas han'} votado este coche</b> · ${np.length} del público · ${nj.length} de la organización</p>
           ${np.length ? `<div class="vgroup"><small>Público</small>${chips(np, 'p')}</div>` : ''}
-          ${nj.length ? `<div class="vgroup"><small>Organización</small>${chips(nj, 'o')}</div>` : ''}
         </div>
       </li>`;
     }).join('');
