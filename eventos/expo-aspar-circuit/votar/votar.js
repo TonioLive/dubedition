@@ -15,6 +15,7 @@
       ? 'Necesitamos tu ubicación para comprobar que estás en Aspar Circuit. Permite el acceso a la ubicación en tu navegador y vuelve a intentarlo.'
       : 'No hemos podido obtener tu ubicación. Activa el GPS y vuelve a intentarlo.')), { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
   });
+  let openId = null;
   let cars = [], byId = {}, picked = [], voted = null, rankTimer = null;
   try { voted = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) {}
   const closed = () => Date.now() >= DEADLINE;
@@ -159,15 +160,30 @@
       const c = byId[r.id];
       const wp = both ? r.publico / 2 : (pub ? r.publico : 0), wo = both ? r.organizacion / 2 : (org ? r.organizacion : 0);
       const scale = list[0].pct ? 100 / list[0].pct : 1;
-      return `<li class="rank-item ${i < 3 ? 'p' + (i + 1) : ''}">
+      const np = r.nombres || [], nj = r.jurado || [];
+      const total = r.votos || (np.length + nj.length);
+      const chips = (arr, cls) => arr.map((n) => `<span class="vchip ${cls}">${esc(n)}</span>`).join('');
+      return `<li class="rank-item ${i < 3 ? 'p' + (i + 1) : ''}${openId === r.id ? ' open' : ''}" data-rid="${esc(r.id)}" tabindex="0" role="button" aria-expanded="${openId === r.id}">
         <span class="rank-pos">${i + 1}</span>
         ${c.fotos[0] ? `<img src="${photo(c.fotos[0])}" alt="" loading="lazy">` : '<span></span>'}
-        <div class="rank-info"><b>${esc(c.marca)} ${esc(c.modelo)}</b><small>${esc(c.id)}${c.instagram ? ' · @' + esc(c.instagram) : ''}</small>
+        <div class="rank-info"><b>${esc(c.marca)} ${esc(c.modelo)}</b><small>${esc(c.id)}${c.instagram ? ' · @' + esc(c.instagram) : ''} · <u>${total} ${total === 1 ? 'voto' : 'votos'}</u></small>
           <div class="rank-bar" aria-hidden="true"><span class="b-pub" style="width:${(wp * scale).toFixed(1)}%"></span><span class="b-org" style="width:${(wo * scale).toFixed(1)}%"></span></div></div>
         <span class="rank-pct">${r.pct.toLocaleString('es-ES', { maximumFractionDigits: 1 })}%</span>
+        <div class="rank-voters">
+          <p><b>${total} ${total === 1 ? 'persona ha' : 'personas han'} votado este coche</b> · ${np.length} del público · ${nj.length} de la organización</p>
+          ${np.length ? `<div class="vgroup"><small>Público</small>${chips(np, 'p')}</div>` : ''}
+          ${nj.length ? `<div class="vgroup"><small>Organización</small>${chips(nj, 'o')}</div>` : ''}
+        </div>
       </li>`;
     }).join('');
   }
+  $('#rankList').addEventListener('click', (e) => {
+    const li = e.target.closest('.rank-item[data-rid]'); if (!li) return;
+    const id = li.dataset.rid;
+    openId = openId === id ? null : id;
+    document.querySelectorAll('.rank-item[data-rid]').forEach((el) => { const on = el.dataset.rid === openId; el.classList.toggle('open', on); el.setAttribute('aria-expanded', on); });
+  });
+  $('#rankList').addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.rank-item')) { e.preventDefault(); e.target.click(); } });
 
   /* ---------- Cuenta atrás de cierre ---------- */
   const vc = $('#voteClose');

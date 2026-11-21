@@ -647,18 +647,24 @@ function results_(fresh) {
   if (!fresh) { const c = cache.get('vote_results'); if (c) return JSON.parse(c); }
   const sh = voteSheet_(); const last = sh.getLastRow();
   const rows = last > 1 ? sh.getRange(2, 1, last - 1, VOTE_HEADERS.length).getValues() : [];
-  const pub = {}, org = {}; let pubTot = 0, orgTot = 0, pubVoters = 0, orgVoters = 0;
+  const pub = {}, org = {}, names = {}; let pubTot = 0, orgTot = 0, pubVoters = 0, orgVoters = 0;
   rows.forEach(r => {
     const isOrg = r[3] === 'Organización';
     const list = String(r[4] || '').split(',').filter(Boolean);
+    const who = String(r[1] || '').trim().slice(0, 40);
     if (isOrg) orgVoters++; else pubVoters++;
-    list.forEach(id => { if (isOrg) { org[id] = (org[id] || 0) + 1; orgTot++; } else { pub[id] = (pub[id] || 0) + 1; pubTot++; } });
+    list.forEach(id => {
+      if (isOrg) { org[id] = (org[id] || 0) + 1; orgTot++; } else { pub[id] = (pub[id] || 0) + 1; pubTot++; }
+      (names[id] = names[id] || { p: [], o: [] })[isOrg ? 'o' : 'p'].push(who);
+    });
   });
   const ids = Object.keys(Object.assign({}, pub, org));
   const wP = pubTot && orgTot ? 0.5 : (pubTot ? 1 : 0), wO = pubTot && orgTot ? 0.5 : (orgTot ? 1 : 0);
   const ranking = ids.map(id => {
     const sp = pubTot ? (pub[id] || 0) / pubTot : 0, so = orgTot ? (org[id] || 0) / orgTot : 0;
-    return { id, pct: Math.round((wP * sp + wO * so) * 1000) / 10, publico: Math.round(sp * 1000) / 10, organizacion: Math.round(so * 1000) / 10, votos: (pub[id] || 0) + (org[id] || 0) };
+    return { id, pct: Math.round((wP * sp + wO * so) * 1000) / 10, publico: Math.round(sp * 1000) / 10, organizacion: Math.round(so * 1000) / 10, votos: (pub[id] || 0) + (org[id] || 0),
+      votosPublico: pub[id] || 0, votosOrganizacion: org[id] || 0,
+      nombres: (names[id] || {}).p || [], jurado: (names[id] || {}).o || [] };
   }).sort((a, b) => b.pct - a.pct || b.votos - a.votos);
   const out = { ok: true, ranking, votantes: { publico: pubVoters, organizacion: orgVoters },
     apertura: CFG.VOTE_START, cierre: CFG.VOTE_DEADLINE, abierta: Date.now() >= new Date(CFG.VOTE_START).getTime(), cerrada: Date.now() >= new Date(CFG.VOTE_DEADLINE).getTime(), actualizado: new Date().toISOString() };

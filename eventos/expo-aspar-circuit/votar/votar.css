@@ -106,3 +106,16 @@ body:has(.site-header:not(.is-hidden)) .vote-tabs{top:66px}
   body:has(.site-header:not(.is-hidden)) .vote-tabs{top:60px}
 }
 .rank-pct{min-width:3.3em;text-align:right}
+
+.rank-item{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rank-item:hover{border-color:rgba(255,255,255,.35)}
+.rank-info small u{text-decoration:none;color:#ffcf3d;font-weight:800}
+.rank-voters{grid-column:1/-1;display:none;padding:12px 6px 6px;border-top:1px solid var(--line);margin-top:4px}
+.rank-item.open .rank-voters{display:block}
+.rank-voters p{margin:0 0 10px;font-size:14px;color:var(--muted)}
+.rank-voters p b{color:#fff}
+.vgroup{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;align-items:center}
+.vgroup small{width:100%;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.vchip{padding:6px 12px;border-radius:999px;font-size:13px;font-weight:700;background:#222;border:1px solid var(--line)}
+.vchip.o{background:rgba(255,207,61,.12);border-color:rgba(255,207,61,.5);color:#ffcf3d}
+.rank-tip{margin-top:4px!important;font-size:13px!important}
