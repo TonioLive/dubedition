@@ -40,6 +40,7 @@ const CFG = {
   VOTE_MAX: 4,
   VOTE_ORG_EMAIL: 'info@dubedition.es',          // los votos con este correo (+ PIN de jurado) cuentan como organización
   VOTE_START: '2026-11-21T09:00:00+01:00',
+  VOTE_EXCLUDED: ['DUB-021'],                     // descalificados por fraude: no reciben votos ni salen en el ranking
   VOTE_GEO: { lat: 39.2261241, lng: -0.4674169, radius: 500, slack: 100 }, // Aspar Circuit: solo se vota estando a ≤500 m (+ hasta 100 m de margen GPS)       // apertura de la votación
   VOTE_DEADLINE: '2026-11-21T13:00:00+01:00',    // cierre de la votación (premios a las 13:30)
   MAP_IMG: 'https://dubedition.es/assets/mail/plano-expo-aspar.jpg',
@@ -568,7 +569,7 @@ function votePin_() {
 
 function acceptedIds_() {
   const ids = {};
-  eachRow_(r => { const o = rowObj_(r.values); if (o.estado === STATUS.ACCEPTED) ids[o.id] = true; });
+  eachRow_(r => { const o = rowObj_(r.values); if (o.estado === STATUS.ACCEPTED && CFG.VOTE_EXCLUDED.indexOf(o.id) < 0) ids[o.id] = true; });
   return ids;
 }
 
@@ -665,7 +666,7 @@ function results_(fresh) {
   const pub = {}, org = {}, names = {}; let pubTot = 0, orgTot = 0, pubVoters = 0, orgVoters = 0;
   rows.forEach(r => {
     const isOrg = r[3] === 'Organización';
-    const list = String(r[4] || '').split(',').filter(Boolean);
+    const list = String(r[4] || '').split(',').filter(id => id && CFG.VOTE_EXCLUDED.indexOf(id) < 0);
     const who = String(r[1] || '').trim().slice(0, 40);
     if (isOrg) orgVoters++; else pubVoters++;
     list.forEach(id => {
