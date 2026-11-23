@@ -222,34 +222,21 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   </div>
 </footer>
 <script defer src="assets/countdown.js"></script>
-<!-- Pop-up próximo evento (se oculta solo después del 21/11/2026) -->
+<!-- Pop-up fotos de la expo (se oculta solo a partir del 21/12/2026) -->
 <dialog id="eventPopup" class="event-popup" aria-labelledby="eventPopupTitle">
   <button type="button" class="event-popup-close" data-close aria-label="Cerrar">&times;</button>
-  <picture class="event-popup-media" aria-hidden="true"><source srcset="assets/photos/expo-aspar-hero.webp" type="image/webp"><img src="assets/photos/expo-aspar-hero.jpg" alt="" width="1024" height="640" loading="lazy" decoding="async"></picture>
+  <picture class="event-popup-media" aria-hidden="true"><source srcset="assets/photos/expo-aspar-fotos-hero.webp" type="image/webp"><img src="assets/photos/expo-aspar-fotos-hero.jpg" alt="" width="1600" height="1066" loading="lazy" decoding="async"></picture>
   <div class="event-popup-body">
     <div class="event-popup-logos">
       <img src="assets/dub-edition-logo-white-sm.png" alt="Dub Edition" width="640" height="114">
       <span aria-hidden="true">×</span>
       <img src="assets/aspar-circuit-logo-white.png" alt="Aspar Circuit" width="741" height="378">
     </div>
-    <p class="eyebrow">Próximo evento · Sáb 21 nov</p>
-    <h2 id="eventPopupTitle">Expo Dub Edition en el Aspar Circuit</h2>
-    <ul class="event-popup-facts">
-      <li><b>Gratis</b></li>
-      <li>Entrada coches 9:00–10:00</li>
-      <li>Premios 13:30</li>
-      <li>Plazas limitadas</li>
-    </ul>
-    <div class="countdown countdown-popup" data-countdown data-deadline="2026-11-19T21:00:00+01:00">
-      <span class="cd-label">Las inscripciones para la expo cierran hoy a las 21:00</span>
-      <span class="cd-clock" aria-live="off"><b data-u="h">--</b><small>h</small><b data-u="m">--</b><small>min</small><b data-u="s">--</b><small>s</small></span>
-      <span class="cd-closed">Inscripciones cerradas · ¡Te esperamos el sábado! Entrada gratis</span>
-    </div>
-    <p class="event-popup-text" data-open-only>Inscribe tu coche y, si entras, te llega por email tu acreditación con QR. Track day opcional (aparte) por 99&nbsp;€.</p>
-    <p class="event-popup-text" data-closed-only hidden>La selección de coches ya está hecha. Ven a ver la expo y el track day: la entrada es gratis.</p>
+    <p class="eyebrow">Expo · Sáb 21 nov · Aspar Circuit</p>
+    <h2 id="eventPopupTitle">Ya están las fotos del evento 📸</h2>
+    <p class="event-popup-text">Gracias a todos por venir. Busca tu coche y descárgate las fotos gratis en alta calidad.</p>
     <div class="event-popup-actions">
-      <a class="btn btn-primary" href="eventos/expo-aspar-circuit/#inscripcion" data-open-only>Inscribir mi coche</a>
-      <a class="btn btn-primary" href="eventos/expo-aspar-circuit/votar/" data-closed-only hidden>🗳️ Vota tus coches</a>
+      <a class="btn btn-primary" href="eventos/expo-aspar-circuit/fotos/">Ver y descargar fotos</a>
       <a class="btn btn-ghost" href="eventos/expo-aspar-circuit/">Ver evento</a>
     </div>
   </div>
@@ -258,8 +245,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 (() => {
   const dlg = document.getElementById('eventPopup');
   if (!dlg || typeof dlg.showModal !== 'function') return;
-  const END = new Date('2026-11-22T00:00:00+01:00');      // deja de salir tras el evento
-  const KEY = 'dubPopupExpoAspar';
+  const END = new Date('2026-12-21T00:00:00+01:00');      // deja de salir un mes después
+  const KEY = 'dubPopupFotosAspar';
   let seen = null; try { seen = sessionStorage.getItem(KEY); } catch (e) {}
   if (Date.now() >= END || seen) return;
   const close = () => dlg.close();
